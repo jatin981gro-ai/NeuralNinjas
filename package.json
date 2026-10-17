@@ -1,0 +1,9 @@
+{
+  "name": "desk-os",
+  "version": "1.0.0",
+  "description": "Desk-OS / Tangible-Bridge Prototype",
+  "scripts": {
+    "start": "npx serve -l 8000 .",
+    "serve": "npx serve -l 8000 ."
+  }
+}

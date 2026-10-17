@@ -1,0 +1,3677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desk-OS — point. speak. automate.</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23fff' stroke-width='6'/><text x='50' y='62' font-family='monospace' font-size='32' font-weight='bold' fill='%23fff' text-anchor='middle'>D</text></svg>">
+  
+  <!-- MediaPipe Hands: Local high-speed script with fast CDN fallback -->
+  <script src="hands.js" onerror="this.onerror=null; this.src='https://unpkg.com/@mediapipe/hands/hands.js'"></script>
+
+  <style>
+    /* ==========================================================================
+       DESK-OS: MONOCHROME EDITORIAL THEME (PRINT-DISCIPLINE HIGH CONTRAST)
+       Strict Color System: Pure Black, Pure White, True Neutral Grays only
+       ========================================================================== */
+    :root {
+      /* Approved Color Palette: Only Pure Black, Pure White, and True Neutral Grays */
+      --color-black: #000000;
+      --color-white: #FFFFFF;
+      --color-gray-dark: #333333;
+      --color-gray-mid: #999999;
+      --color-gray-light: #E5E5E5;
+
+      /* Semantic Tokens */
+      --color-bg: #FFFFFF;
+      --color-fg: #000000;
+      --color-muted: #999999;
+      --color-border: #E5E5E5;
+
+      --color-dark-bg: #000000;
+      --color-dark-fg: #FFFFFF;
+      --color-dark-muted: #999999;
+      --color-dark-border: #333333;
+
+      /* Spatial 8px Scale */
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-6: 48px;
+
+      /* Editorial Geometry: Sharp Minimal Radii (Strictly No Pills) */
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 4px;
+
+      /* Modular Typography */
+      --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      background-color: var(--color-dark-bg);
+      color: var(--color-dark-fg);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ==========================================================================
+       1. TOP DARK SECTION: MASTHEAD & GLOBAL CONTROLS (BLACK #000000)
+       ========================================================================== */
+    header {
+      background: var(--color-dark-bg);
+      color: var(--color-dark-fg);
+      border-bottom: 1px solid var(--color-dark-border);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--color-white);
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      text-transform: uppercase;
+    }
+
+    .brand-title span.badge-pill {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      background: var(--color-white);
+      color: var(--color-black);
+      border-radius: var(--radius-sm);
+    }
+
+    .brand-tagline {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-dark-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .header-status-strip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 12px;
+      background: var(--color-dark-bg);
+      border: 1px solid var(--color-dark-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-dark-muted);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+      border: 1px solid var(--color-dark-muted);
+      background: transparent;
+    }
+
+    .status-dot.active {
+      background: var(--color-white);
+      border-color: var(--color-white);
+    }
+
+    .status-dot.warn {
+      background: transparent;
+      border: 1px solid var(--color-white);
+      outline: 1px solid var(--color-white);
+      outline-offset: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    /* BUTTONS: EDITORIAL INVERSION & 2PX CORNERS */
+    .btn {
+      appearance: none;
+      background: var(--color-dark-bg);
+      color: var(--color-white);
+      border: 1px solid var(--color-dark-border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-1) var(--space-2);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-1);
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--color-white);
+      color: var(--color-black);
+      border-color: var(--color-white);
+    }
+
+    /* Primary CTA in dark masthead */
+    .btn-primary {
+      background: var(--color-white);
+      color: var(--color-black);
+      border: 1px solid var(--color-white);
+      font-weight: 800;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-black);
+      color: var(--color-white);
+      border-color: var(--color-white);
+    }
+
+    .btn-demo-mode {
+      background: var(--color-dark-bg);
+      border: 1px solid var(--color-white);
+      color: var(--color-white);
+      font-weight: 800;
+    }
+
+    .btn-demo-mode:hover,
+    .btn-demo-mode.active {
+      background: var(--color-white);
+      color: var(--color-black);
+      border-color: var(--color-white);
+    }
+
+    .btn-icon {
+      padding: var(--space-1) var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    /* DIAGNOSTIC MONITOR STRIP */
+    .debug-status-strip {
+      background: var(--color-dark-bg);
+      border-bottom: 1px solid var(--color-dark-border);
+      padding: 6px var(--space-4);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--color-dark-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .debug-status-strip.error {
+      background: var(--color-white);
+      color: var(--color-black);
+      font-weight: 700;
+    }
+
+    .debug-status-strip.success {
+      color: var(--color-white);
+    }
+
+    .debug-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--color-white);
+      display: inline-block;
+      border-radius: 1px;
+    }
+
+    .debug-dot.error {
+      background: var(--color-black);
+    }
+
+    /* ==========================================================================
+       2. MIDDLE LIGHT SECTION: WORKSPACE DECK (WHITE #FFFFFF)
+       ========================================================================== */
+    .workspace-deck {
+      background-color: var(--color-white);
+      color: var(--color-black);
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      border-top: 2px solid var(--color-black);
+      border-bottom: 2px solid var(--color-black);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      max-width: 1680px;
+      margin: 0 auto;
+      width: 100%;
+      background: var(--color-white);
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: var(--space-2);
+        gap: var(--space-3);
+      }
+    }
+
+    /* LEFT: AR VIEWPORT COLUMN */
+    .viewport-column {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .feed-wrapper {
+      position: relative;
+      background: var(--color-black);
+      border: 2px solid var(--color-black);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #webcamVideo {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    #virtualDeskCanvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      background: var(--color-black);
+    }
+
+    #arOverlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: auto;
+      cursor: crosshair;
+      z-index: 10;
+    }
+
+    /* FEED HUD CORNERS */
+    .feed-hud-corner {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .hud-tl { top: var(--space-2); left: var(--space-2); }
+    .hud-tr { top: var(--space-2); right: var(--space-2); }
+    .hud-bl { bottom: var(--space-2); left: var(--space-2); }
+    .hud-br { bottom: var(--space-2); right: var(--space-2); }
+
+    .hud-pill {
+      background: var(--color-black);
+      border: 1px solid var(--color-white);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-white);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-pill.highlight {
+      background: var(--color-white);
+      color: var(--color-black);
+      border: 1px solid var(--color-white);
+    }
+
+    #activeNodesBadge {
+      display: none;
+    }
+
+    /* PEN FOCUS TIMER WIDGET (STRONG MONOCHROME INVERSION) */
+    .pen-timer-widget {
+      position: absolute;
+      top: var(--space-2);
+      right: var(--space-2);
+      background: var(--color-black);
+      border: 2px solid var(--color-white);
+      border-radius: var(--radius-md);
+      padding: var(--space-2);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 30;
+      min-width: 220px;
+    }
+
+    .pen-timer-widget.running {
+      border: 2px solid var(--color-white);
+      outline: 2px solid var(--color-black);
+    }
+
+    .pen-timer-widget.paused {
+      border: 2px solid var(--color-gray-mid);
+    }
+
+    .timer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-1);
+    }
+
+    .timer-title {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-gray-mid);
+      font-family: var(--font-mono);
+    }
+
+    .timer-status-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .timer-status-badge.running {
+      background: var(--color-white);
+      color: var(--color-black);
+      border: 1px solid var(--color-white);
+    }
+
+    .timer-status-badge.paused {
+      background: transparent;
+      color: var(--color-white);
+      border: 1px solid var(--color-gray-mid);
+    }
+
+    .timer-status-badge.ready {
+      background: transparent;
+      color: var(--color-white);
+      border: 1px solid var(--color-white);
+    }
+
+    .timer-display {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: 2px;
+      color: var(--color-white);
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    .timer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-1);
+      margin-top: 4px;
+    }
+
+    .timer-btn {
+      background: transparent;
+      border: 1px solid var(--color-white);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--color-white);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .timer-btn:hover {
+      background: var(--color-white);
+      color: var(--color-black);
+    }
+
+    /* REAL-TIME GESTURE FEEDBACK HUD (MONOCHROME BANNER) */
+    .gesture-feedback-hud {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--color-black);
+      border: 2px solid var(--color-white);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-white);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .gesture-feedback-hud.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .feed-instruction-banner {
+      position: absolute;
+      bottom: var(--space-2);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-black);
+      border: 1px solid var(--color-white);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-white);
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    /* CONTROLS BAR UNDER VIDEO (WHITE DECK SECTION) */
+    .viewport-controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--color-white);
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-black);
+      gap: var(--space-2);
+    }
+
+    .feed-mode-switch {
+      display: flex;
+      background: var(--color-white);
+      padding: 2px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-black);
+      gap: 2px;
+    }
+
+    .feed-mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-black);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: var(--font-mono);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .feed-mode-btn.active {
+      background: var(--color-black);
+      color: var(--color-white);
+    }
+
+    .sensitivity-control {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--color-black);
+    }
+
+    .sensitivity-control input[type="range"] {
+      accent-color: var(--color-black);
+      width: 100px;
+      cursor: pointer;
+    }
+
+    /* RIGHT COLUMN: RULE NODES & ACTIVITY STREAM (WHITE DECK) */
+    .panel-column {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      height: 100%;
+    }
+
+    .panel-card {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-black);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-gray-light);
+      padding-bottom: var(--space-1);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--color-black);
+      letter-spacing: -0.3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .panel-count {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      background: var(--color-black);
+      color: var(--color-white);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+    }
+
+    /* REGISTRATION DRAWER (STRONG INVERTED BLACK BLOCK) */
+    .registration-modal {
+      display: none;
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 2px solid var(--color-black);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+
+    .reg-top-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+
+    .target-preview-box {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-white);
+      overflow: hidden;
+      background: var(--color-black);
+      flex-shrink: 0;
+    }
+
+    .target-preview-box canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .reg-meta {
+      flex: 1;
+    }
+
+    .reg-meta-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--color-white);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .reg-meta-sub {
+      font-size: 11px;
+      color: var(--color-gray-mid);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .color-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 1px;
+      border: 1px solid var(--color-white);
+      display: inline-block;
+    }
+
+    .prompt-input-group {
+      position: relative;
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .rule-input {
+      flex: 1;
+      background: var(--color-black);
+      border: 1px solid var(--color-white);
+      border-radius: var(--radius-sm);
+      color: var(--color-white);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .rule-input:focus {
+      border: 2px solid var(--color-white);
+    }
+
+    .mic-button {
+      background: var(--color-black);
+      border: 1px solid var(--color-white);
+      border-radius: var(--radius-sm);
+      color: var(--color-white);
+      padding: 0 var(--space-2);
+      font-size: 11px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .mic-button:hover,
+    .mic-button.listening {
+      background: var(--color-white);
+      color: var(--color-black);
+    }
+
+    .quick-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: var(--space-2) 0;
+    }
+
+    .chip-btn {
+      background: transparent;
+      border: 1px solid var(--color-dark-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-gray-mid);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip-btn:hover {
+      background: var(--color-white);
+      color: var(--color-black);
+      border-color: var(--color-white);
+    }
+
+    .reg-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-1);
+    }
+
+    /* NODES LIST */
+    .nodes-scroll-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .nodes-scroll-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .nodes-scroll-container::-webkit-scrollbar-thumb {
+      background: var(--color-black);
+      border-radius: 2px;
+    }
+
+    .node-card {
+      background: var(--color-white);
+      border: 1px solid var(--color-black);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      transition: border-width 0.15s;
+    }
+
+    .node-card:hover {
+      background: var(--color-white);
+      border-width: 2px;
+    }
+
+    .node-card.fired {
+      background: var(--color-black);
+      color: var(--color-white);
+      border-color: var(--color-black);
+    }
+
+    .node-card.fired .node-title,
+    .node-card.fired .node-action-desc,
+    .node-card.fired .node-stats {
+      color: var(--color-white);
+    }
+
+    .node-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--color-black);
+      background: var(--color-black);
+      flex-shrink: 0;
+    }
+
+    .node-thumb canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .node-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .node-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .node-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--color-black);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-trigger {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: var(--font-mono);
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 1px solid var(--color-black);
+    }
+
+    .badge-trigger.move,
+    .badge-trigger.touch,
+    .badge-trigger.remove {
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 1px solid var(--color-black);
+    }
+
+    .node-action-desc {
+      font-size: 12px;
+      color: var(--color-gray-dark);
+      font-family: var(--font-mono);
+    }
+
+    .node-stats {
+      font-size: 10px;
+      color: var(--color-gray-mid);
+      font-family: var(--font-mono);
+    }
+
+    .node-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .btn-fire {
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 1px solid var(--color-black);
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-fire:hover {
+      background: var(--color-white);
+      color: var(--color-black);
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--color-black);
+      color: var(--color-black);
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-delete:hover {
+      background: var(--color-black);
+      color: var(--color-white);
+    }
+
+    /* ACTIVITY LOG / EVENT STREAM */
+    .activity-section {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-black);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      min-height: 180px;
+    }
+
+    .log-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 180px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .log-entry {
+      padding: 6px var(--space-1);
+      border-radius: var(--radius-sm);
+      background: var(--color-white);
+      border-left: 2px solid var(--color-gray-light);
+      color: var(--color-gray-dark);
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .log-entry.trigger {
+      border-left: 3px solid var(--color-black);
+      color: var(--color-black);
+      font-weight: 700;
+    }
+
+    .log-time {
+      color: var(--color-gray-mid);
+      font-size: 10px;
+    }
+
+    /* TOASTS (INVERTED HIGH-CONTRAST BLACK CARDS) */
+    #toastContainer {
+      position: fixed;
+      top: 80px;
+      right: var(--space-4);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--color-black);
+      border: 2px solid var(--color-white);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      color: var(--color-white);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 280px;
+      transform: translateX(120%);
+      transition: transform 0.2s ease;
+      font-family: var(--font-mono);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .toast-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-white);
+    }
+
+    .toast-msg {
+      font-size: 11px;
+      color: var(--color-gray-mid);
+    }
+
+    /* MODAL: API SETTINGS & CAMERA ERROR */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-card,
+    .camera-error-modal {
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 2px solid var(--color-white);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      width: 90%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .settings-title {
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .settings-desc {
+      font-size: 12px;
+      color: var(--color-gray-mid);
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       3. BOTTOM DARK SECTION: EDITORIAL FOOTER & LEGEND (BLACK #000000)
+       ========================================================================== */
+    footer.editorial-footer {
+      background: var(--color-dark-bg);
+      color: var(--color-dark-fg);
+      border-top: 2px solid var(--color-dark-border);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .footer-spec {
+      color: var(--color-dark-muted);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .footer-spec b {
+      color: var(--color-white);
+      font-weight: 800;
+    }
+
+    .footer-legend {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      color: var(--color-white);
+      font-weight: 700;
+    }
+
+    .footer-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP PRESENTATION HEADER
+       ======================================================================== -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-title">
+        Desk-OS
+        <span class="badge-pill">Tangible Bridge</span>
+      </div>
+      <div class="brand-tagline">point. speak. automate.</div>
+    </div>
+
+    <!-- Live Status Indicators -->
+    <div class="header-status-strip">
+      <div class="status-badge" id="cameraStatusPill">
+        <div class="status-dot warn" id="cameraStatusDot"></div>
+        <span id="cameraStatusText">Camera: Initializing</span>
+      </div>
+      <div class="status-badge" id="handsStatusPill">
+        <div class="status-dot warn" id="handsStatusDot"></div>
+        <span id="handsStatusText">Hands: Standby</span>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn btn-demo-mode" id="demoModeBtn" title="Pre-wire two sample objects (safe backup for stage lighting)">
+        DEMO MODE
+      </button>
+      <button class="btn" id="resetDemoBtn" title="Reset all objects and state for the next judge">
+        RESET DEMO
+      </button>
+      <button class="btn btn-icon" id="sfxToggleBtn" title="Toggle Synthesized Audio Chimes">
+        AUDIO
+      </button>
+      <button class="btn btn-icon" id="settingsBtn" title="Configure Gemini API Key">
+        CONFIG
+      </button>
+    </div>
+  </header>
+
+  <!-- DIAGNOSTIC PIPELINE MONITOR STRIP -->
+  <div class="debug-status-strip" id="debugStatusStrip">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="debug-dot" id="debugDot"></span>
+      <span id="debugStatusLine">System: Initializing hardware & vision pipeline...</span>
+    </div>
+    <div id="debugServerTip" style="font-size: 11px; opacity: 0.85;">
+      TIP: OPEN VIA HTTP://LOCALHOST:8000 FOR FULL WEBCAM SECURE CONTEXT
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MIDDLE LIGHT SECTION: WORKSPACE DECK (WHITE #FFFFFF)
+       ======================================================================== -->
+  <div class="workspace-deck">
+    <main>
+      
+      <!-- LEFT COLUMN: AR WEBCAM / VIRTUAL DESK VIEWPORT -->
+      <section class="viewport-column">
+        <div class="feed-wrapper" id="feedContainer">
+          <!-- Live Video Element -->
+          <video id="webcamVideo" playsinline autoplay muted></video>
+
+          <!-- Fallback/Virtual Desk Canvas (Rendered when camera denied or in simulation mode) -->
+          <canvas id="virtualDeskCanvas"></canvas>
+
+          <!-- AR Overlay Canvas (Landmarks, bounding boxes, laser connector lines, shockwaves) -->
+          <canvas id="arOverlayCanvas"></canvas>
+
+          <!-- HUD Corners -->
+          <div class="feed-hud-corner hud-tl">
+            <div class="hud-pill highlight" id="activeNodesBadge">
+              <span>0 Active Bindings</span>
+            </div>
+          </div>
+
+          <div class="feed-hud-corner hud-bl">
+            <div class="hud-pill" id="fpsPill">
+              <span>60 FPS</span>
+            </div>
+          </div>
+
+          <!-- Pen Focus Timer Widget (Auto-starts when Pen is lifted from resting dock) -->
+          <div class="pen-timer-widget" id="penTimerWidget">
+            <div class="timer-header">
+              <span class="timer-title">PEN FOCUS TIMER</span>
+              <span class="timer-status-badge ready" id="timerStatusBadge">DOCK READY</span>
+            </div>
+            <div class="timer-display" id="timerDisplay">00:00.0</div>
+            <div class="timer-controls">
+              <button class="timer-btn" id="timerResetBtn" title="Reset Stopwatch">RESET</button>
+              <button class="timer-btn" id="timerToggleBtn" title="Manual Toggle">START</button>
+            </div>
+          </div>
+
+          <!-- Camera Error / Permission Denied Modal Overlay -->
+          <div class="camera-error-overlay" id="cameraErrorOverlay" style="display: none;">
+            <div class="camera-error-modal">
+              <div style="font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; color: var(--color-white); border-bottom: 1px solid var(--color-gray-dark); padding-bottom: 4px;">[ CAMERA HARDWARE ERROR ]</div>
+              <div style="font-weight: 800; font-size: 16px; margin-bottom: 6px; color: var(--color-white); text-transform: uppercase;">Camera Access Unavailable</div>
+              <div id="cameraErrorReason" style="font-size: 12px; color: var(--color-gray-mid); margin-bottom: 12px; font-family: var(--font-mono);">
+                Permission denied by user / browser
+              </div>
+              <p style="font-size: 12px; color: var(--color-gray-mid); line-height: 1.5; margin-bottom: 20px;">
+                Desk-OS requires camera access for real physical desk & pen tracking.<br>
+                Click the camera icon in your browser address bar to <b>Allow</b> access, then retry.
+              </p>
+              <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="retryWebcamBtn">RETRY CAMERA ACCESS</button>
+                <button class="btn" id="dismissFallbackBtn" style="font-size: 11px;">USE VIRTUAL FALLBACK</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-time Gesture Feedback HUD Label -->
+          <div class="gesture-feedback-hud" id="gestureFeedbackHud">
+            <span id="gestureFeedbackText">Point detected — timer started</span>
+          </div>
+
+          <!-- Instructional Banner -->
+          <div class="feed-instruction-banner" id="guideBanner">
+            <span id="guideBannerText">Click any physical object on your desk to register</span>
+          </div>
+        </div>
+
+        <!-- VIEWPORT CONTROLS BAR -->
+        <div class="viewport-controls-bar">
+          <div class="feed-mode-switch">
+            <button class="feed-mode-btn active" id="feedWebcamBtn">
+              LIVE WEBCAM
+            </button>
+            <button class="feed-mode-btn" id="feedVirtualBtn" title="Emergency fallback if camera hardware is unavailable">
+              VIRTUAL DESK
+            </button>
+          </div>
+
+          <div class="sensitivity-control">
+            <span>Motion Sensitivity:</span>
+            <input type="range" id="sensitivitySlider" min="15" max="60" value="30" title="Adjust distance threshold for motion triggers">
+          </div>
+
+          <div style="font-size: 12px; color: var(--color-gray-dark); font-family: var(--font-mono);">
+            GESTURE: <span id="gestureDisplay" style="color: var(--color-black); font-weight: 800;">NONE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: REGISTRATION DRAWER, NODES LIST & LIVE EVENT LOG -->
+      <section class="panel-column">
+
+        <!-- IN-LINE OBJECT REGISTRATION DRAWER (Opens when an object is clicked) -->
+        <div class="registration-modal" id="registrationDrawer">
+          <div class="reg-top-bar">
+            <div class="target-preview-box">
+              <canvas id="regPatchPreview" width="60" height="60"></canvas>
+            </div>
+            <div class="reg-meta">
+              <div class="reg-meta-title" id="regObjectTitle">New Physical Target</div>
+              <div class="reg-meta-sub">
+                <span class="color-swatch" id="regColorSwatch"></span>
+                <span id="regCoordsText">Target coordinates locked</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule Prompt with Voice Button -->
+          <div class="prompt-input-group">
+            <input 
+              type="text" 
+              class="rule-input" 
+              id="ruleInputText" 
+              placeholder="e.g. When I move this mug left, turn the light off" 
+              autocomplete="off"
+            />
+            <button class="mic-button" id="voiceMicBtn" title="Speak rule (Web Speech API)">
+              VOICE
+            </button>
+          </div>
+
+          <!-- Quick Rule Preset Chips -->
+          <div class="quick-chips-row">
+            <button class="chip-btn" data-rule="When moved left, turn off the desk light">MOVE LEFT -> LIGHT OFF</button>
+            <button class="chip-btn" data-rule="When touched, pause Spotify music">TOUCH -> PAUSE SPOTIFY</button>
+            <button class="chip-btn" data-rule="When removed, dispatch emergency Slack ping">REMOVED -> SLACK ALERT</button>
+            <button class="chip-btn" data-rule="When moved up, increase speaker volume">MOVE UP -> VOL UP</button>
+          </div>
+
+          <!-- Actions -->
+          <div class="reg-actions-row">
+            <button class="btn" id="cancelRegBtn">Cancel</button>
+            <button class="btn btn-primary" id="bindRuleBtn">
+              BIND NODE
+            </button>
+          </div>
+        </div>
+
+        <!-- ACTIVE TASKS PANEL (Only lists live, active bindings) -->
+        <div class="panel-card" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>Active Tasks</span>
+              <span class="panel-count" id="nodesCountBadge" style="display: none;"></span>
+            </div>
+            <div style="font-size: 11px; color: var(--color-gray-mid); font-family: var(--font-mono); text-transform: uppercase;">
+              Live Spatial Automations
+            </div>
+          </div>
+
+          <!-- Active Tasks Scroll Container -->
+          <div class="nodes-scroll-container" id="nodesContainer">
+            <!-- Populated dynamically with active task bindings only -->
+          </div>
+        </div>
+
+        <!-- LIVE EVENT STREAM / TOAST FEED -->
+        <div class="activity-section">
+          <div class="panel-header">
+            <div class="panel-title" style="font-size: 14px;">
+              <span>Live Action Stream</span>
+            </div>
+            <button class="btn" id="clearLogBtn" style="padding: 2px 8px; font-size: 11px;">
+              Clear
+            </button>
+          </div>
+
+          <div class="log-stream" id="logStreamContainer">
+            <div class="log-entry">
+              <span class="log-time">[System]</span>
+              <span>Desk-OS core initialized. Vision engine ready.</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       BOTTOM DARK SECTION: EDITORIAL FOOTER & LEGEND (BLACK #000000)
+       ======================================================================== -->
+  <footer class="editorial-footer">
+    <div class="footer-spec">
+      <span>DESK-OS // BUILD 2.4</span>
+      <span>•</span>
+      <span>STREAM: <b>LIVE 720P</b></span>
+      <span>•</span>
+      <span>PIPELINE: <b>MEDIAPIPE 21-LM</b></span>
+      <span>•</span>
+      <span>CONTRAST: <b>21:1 AAA</b></span>
+    </div>
+    <div class="footer-legend">
+      <span><b>[POINT]</b> START</span>
+      <span>•</span>
+      <span><b>[FIST]</b> PAUSE</span>
+      <span>•</span>
+      <span><b>[WAVE]</b> RESET</span>
+      <span>•</span>
+      <span><b>[PEN LIFT]</b> DOCK TIMER</span>
+    </div>
+  </footer>
+
+  <!-- FLOATING HUD TOAST CONTAINER -->
+  <div id="toastContainer"></div>
+
+  <!-- SETTINGS MODAL (GEMINI API KEY) -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="settings-card">
+      <div class="settings-title">DESK-OS ENGINE SETTINGS</div>
+      <div class="settings-desc">
+        Desk-OS uses a fast local NLP parser by default with zero latency and offline reliability. You can optionally supply a Gemini API key for complex natural language reasoning.
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Gemini API Key (Optional)</label>
+        <input 
+          type="password" 
+          id="geminiApiKeyInput" 
+          class="rule-input" 
+          placeholder="AIzaSy..."
+        />
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Custom Webhook Endpoint (Optional)</label>
+        <input 
+          type="text" 
+          id="customWebhookInput" 
+          class="rule-input" 
+          placeholder="https://maker.ifttt.com/use/..."
+        />
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button class="btn" id="closeSettingsBtn">Close</button>
+        <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DESK-OS CLIENT ENGINE JAVASCRIPT
+       ======================================================================== -->
+  <script>
+    (function() {
+      'use strict';
+
+      // ----------------------------------------------------------------------
+      // GLOBAL ERROR SILENCING & PRESENTATION DEFENSE
+      // ----------------------------------------------------------------------
+      window.addEventListener('error', (e) => {
+        // Prevent raw errors from bubbling up to audience console
+        console.warn('[Desk-OS Guarded]', e.message);
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        console.warn('[Desk-OS Guarded Promise]', e.reason);
+        e.preventDefault();
+      });
+
+      // ----------------------------------------------------------------------
+      // STATE MANAGEMENT & EXTENDED SYSTEM PIPELINE
+      // ----------------------------------------------------------------------
+      const state = {
+        feedMode: 'webcam', // 'webcam' | 'virtual'
+        initStatus: 'idle', // 'idle' | 'requesting-camera' | 'camera-granted' | 'loading-model' | 'tracking-ready' | 'failed'
+        isDemoMode: false,
+        soundEnabled: true,
+        cameraStream: null,
+        mediaPipeActive: false,
+        hands: null,
+        handLandmarks: [],
+        handTouchPoint: null, // {x, y} in canvas coordinates
+        currentGesture: 'None',
+        
+        // Tracked physical objects
+        objects: [], // Array of { id, name, x, y, initialX, initialY, restingX, restingY, isPenTimer, color, roiPatch, rule, ... }
+        pendingRegistration: null, // Temporary clicked target during rule creation
+        
+        // Pen Focus Stopwatch Feature State
+        penTimer: {
+          elapsedMs: 0,
+          isRunning: false,
+          lastTimestamp: null,
+          penObject: null,
+          source: 'dock' // 'dock' | 'gesture' | 'manual'
+        },
+
+        // Real-time Hand Gesture Engine State
+        gestureControl: {
+          lastFiredGesture: null,
+          lastFiredTime: 0,
+          cooldownMs: 600,
+          isWaitingForNeutral: false,
+          palmXHistory: []
+        },
+
+        // Settings
+        geminiApiKey: localStorage.getItem('desk_os_gemini_key') || '',
+        webhookUrl: localStorage.getItem('desk_os_webhook_url') || '',
+        motionThreshold: 30, // Pixels displacement
+        touchRadius: 36, // Proximity for touch
+        
+        // Audio
+        audioCtx: null
+      };
+
+      // ----------------------------------------------------------------------
+      // DOM REFS
+      // ----------------------------------------------------------------------
+      const video = document.getElementById('webcamVideo');
+      const virtualCanvas = document.getElementById('virtualDeskCanvas');
+      const vCtx = virtualCanvas.getContext('2d');
+      const arCanvas = document.getElementById('arOverlayCanvas');
+      const arCtx = arCanvas.getContext('2d');
+
+      const feedContainer = document.getElementById('feedContainer');
+      const cameraStatusDot = document.getElementById('cameraStatusDot');
+      const cameraStatusText = document.getElementById('cameraStatusText');
+      const handsStatusDot = document.getElementById('handsStatusDot');
+      const handsStatusText = document.getElementById('handsStatusText');
+      const parserStatusText = document.getElementById('parserStatusText');
+      const guideBannerText = document.getElementById('guideBannerText');
+      const gestureFeedbackHud = document.getElementById('gestureFeedbackHud');
+      const gestureFeedbackText = document.getElementById('gestureFeedbackText');
+
+      // Diagnostic Strip Refs
+      const debugStatusStrip = document.getElementById('debugStatusStrip');
+      const debugStatusLine = document.getElementById('debugStatusLine');
+      const debugDot = document.getElementById('debugDot');
+
+      // Pen Focus Timer Refs
+      const penTimerWidget = document.getElementById('penTimerWidget');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const timerStatusBadge = document.getElementById('timerStatusBadge');
+      const timerResetBtn = document.getElementById('timerResetBtn');
+      const timerToggleBtn = document.getElementById('timerToggleBtn');
+
+      const demoModeBtn = document.getElementById('demoModeBtn');
+      const resetDemoBtn = document.getElementById('resetDemoBtn');
+      const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const feedWebcamBtn = document.getElementById('feedWebcamBtn');
+      const feedVirtualBtn = document.getElementById('feedVirtualBtn');
+      const sensitivitySlider = document.getElementById('sensitivitySlider');
+      const gestureDisplay = document.getElementById('gestureDisplay');
+
+      const registrationDrawer = document.getElementById('registrationDrawer');
+      const regPatchPreview = document.getElementById('regPatchPreview');
+      const regPatchCtx = regPatchPreview.getContext('2d');
+      const regObjectTitle = document.getElementById('regObjectTitle');
+      const regColorSwatch = document.getElementById('regColorSwatch');
+      const regCoordsText = document.getElementById('regCoordsText');
+      const ruleInputText = document.getElementById('ruleInputText');
+      const voiceMicBtn = document.getElementById('voiceMicBtn');
+      const cancelRegBtn = document.getElementById('cancelRegBtn');
+      const bindRuleBtn = document.getElementById('bindRuleBtn');
+
+      const nodesContainer = document.getElementById('nodesContainer');
+      const nodesCountBadge = document.getElementById('nodesCountBadge');
+      const activeNodesBadge = document.getElementById('activeNodesBadge');
+      const logStreamContainer = document.getElementById('logStreamContainer');
+      const clearLogBtn = document.getElementById('clearLogBtn');
+      const toastContainer = document.getElementById('toastContainer');
+      const fpsPill = document.getElementById('fpsPill');
+
+      const settingsModal = document.getElementById('settingsModal');
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      const customWebhookInput = document.getElementById('customWebhookInput');
+
+      // ----------------------------------------------------------------------
+      // EXPLICIT HARDWARE PIPELINE STATE MACHINE & DIAGNOSTICS
+      // ----------------------------------------------------------------------
+      function setSystemInitState(phase, detail, isError = false) {
+        state.initStatus = phase;
+        
+        if (debugStatusLine) debugStatusLine.textContent = detail;
+        if (debugDot) {
+          debugDot.className = `debug-dot ${isError ? 'error' : (phase === 'tracking-ready' ? 'success' : '')}`;
+        }
+        if (debugStatusStrip) {
+          debugStatusStrip.className = `debug-status-strip ${isError ? 'error' : (phase === 'tracking-ready' ? 'success' : '')}`;
+        }
+
+        if (phase === 'requesting-camera') {
+          cameraStatusDot.className = 'status-dot warn';
+          cameraStatusText.textContent = 'Camera: Requesting...';
+          handsStatusDot.className = 'status-dot';
+          handsStatusText.textContent = 'Hands: Waiting on Camera';
+        } else if (phase === 'camera-granted') {
+          cameraStatusDot.className = 'status-dot active';
+          cameraStatusText.textContent = 'Camera: Live (720p)';
+          handsStatusDot.className = 'status-dot warn';
+          handsStatusText.textContent = 'Hands: Loading Model...';
+        } else if (phase === 'loading-model') {
+          handsStatusDot.className = 'status-dot warn';
+          handsStatusText.textContent = 'Hands: Loading (5s timeout)';
+        } else if (phase === 'tracking-ready') {
+          cameraStatusDot.className = 'status-dot active';
+          cameraStatusText.textContent = 'Camera: Live';
+          handsStatusDot.className = 'status-dot active';
+          handsStatusText.textContent = 'Hands: Ready';
+        } else if (phase === 'failed') {
+          if (state.cameraStream) {
+            cameraStatusDot.className = 'status-dot active';
+            cameraStatusText.textContent = 'Camera: Live';
+            handsStatusDot.className = 'status-dot warn';
+            handsStatusText.textContent = 'Hands: Failed — using fallback';
+          } else {
+            cameraStatusDot.className = 'status-dot error';
+            cameraStatusText.textContent = 'Camera: Blocked';
+            handsStatusDot.className = 'status-dot warn';
+            handsStatusText.textContent = 'Hands: Unavailable';
+          }
+        }
+        appendLog(`[Pipeline] ${phase}: ${detail}`);
+      }
+
+      // ----------------------------------------------------------------------
+      // PEN FOCUS STOPWATCH ENGINE
+      // ----------------------------------------------------------------------
+      function startPenTimer(penObj, reason = 'Pen lifted from resting dock') {
+        if (!state.penTimer.isRunning) {
+          state.penTimer.isRunning = true;
+          state.penTimer.lastTimestamp = performance.now();
+          state.penTimer.source = reason.toLowerCase().includes('gesture') ? 'gesture' : (reason.toLowerCase().includes('manual') ? 'manual' : 'pen');
+          if (penObj) state.penTimer.penObject = penObj;
+          
+          playSciFiChime('fire');
+          showToast('Focus Stopwatch Started', reason, 'TIMER');
+          appendLog(`Focus Timer started: ${reason}`, true);
+        }
+      }
+
+      function pausePenTimer(penObj, reason = 'Pen returned to resting dock') {
+        if (state.penTimer.isRunning) {
+          state.penTimer.isRunning = false;
+          state.penTimer.lastTimestamp = null;
+          state.penTimer.source = reason.toLowerCase().includes('gesture') ? 'gesture' : (reason.toLowerCase().includes('manual') ? 'manual' : 'pen');
+          
+          playSciFiChime('register');
+          showToast('Focus Stopwatch Paused', reason, 'TIMER');
+          appendLog(`Focus Timer paused (${reason}) at ${timerDisplay ? timerDisplay.textContent : ''}`, false);
+        }
+      }
+
+      function resetPenTimer() {
+        state.penTimer.elapsedMs = 0;
+        state.penTimer.isRunning = false;
+        state.penTimer.lastTimestamp = null;
+        state.penTimer.source = 'dock';
+        updatePenTimerDisplay();
+        showToast('Timer Reset', 'Focus Stopwatch reset to 00:00.0', 'TIMER');
+        appendLog('Focus Stopwatch reset to 00:00.0');
+      }
+
+      function updatePenTimerDisplay() {
+        if (state.penTimer.isRunning) {
+          const now = performance.now();
+          if (state.penTimer.lastTimestamp) {
+            state.penTimer.elapsedMs += (now - state.penTimer.lastTimestamp);
+          }
+          state.penTimer.lastTimestamp = now;
+        }
+
+        const totalSecs = Math.floor(state.penTimer.elapsedMs / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        const tenths = Math.floor((state.penTimer.elapsedMs % 1000) / 100);
+        const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
+
+        if (timerDisplay) timerDisplay.textContent = formatted;
+
+        if (penTimerWidget && timerStatusBadge && timerToggleBtn) {
+          if (state.penTimer.isRunning) {
+            penTimerWidget.className = 'pen-timer-widget running';
+            timerStatusBadge.className = 'timer-status-badge running';
+            timerStatusBadge.textContent = state.penTimer.source === 'gesture' ? 'RUNNING (GESTURE)' : 'RUNNING (PEN LIFTED)';
+            timerToggleBtn.textContent = 'Pause';
+          } else if (state.penTimer.elapsedMs > 0) {
+            penTimerWidget.className = 'pen-timer-widget paused';
+            timerStatusBadge.className = 'timer-status-badge paused';
+            timerStatusBadge.textContent = state.penTimer.source === 'gesture' ? 'PAUSED (GESTURE)' : 'PAUSED (PEN DOCKED)';
+            timerToggleBtn.textContent = 'Resume';
+          } else {
+            penTimerWidget.className = 'pen-timer-widget';
+            timerStatusBadge.className = 'timer-status-badge ready';
+            timerStatusBadge.textContent = 'DOCK READY';
+            timerToggleBtn.textContent = 'Start';
+          }
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // GESTURE-CONTROLLED TIMER ENGINE (POINT, FIST, WAVE)
+      // ----------------------------------------------------------------------
+      let gestureFeedbackTimeout = null;
+
+      function showGestureFeedback(message) {
+        if (!gestureFeedbackHud || !gestureFeedbackText) return;
+        gestureFeedbackText.textContent = message;
+        gestureFeedbackHud.style.borderColor = 'var(--color-white)';
+        gestureFeedbackHud.style.boxShadow = 'none';
+        gestureFeedbackHud.classList.add('show');
+
+        if (gestureFeedbackTimeout) clearTimeout(gestureFeedbackTimeout);
+        gestureFeedbackTimeout = setTimeout(() => {
+          gestureFeedbackHud.classList.remove('show');
+        }, 1100);
+      }
+
+      function evaluateWaveReversals(history) {
+        if (!history || history.length < 4) return false;
+        const minStroke = 0.035; // ~45px horizontal travel threshold in normalized coords
+        let direction = 0; // 1: moving right, -1: moving left
+        let lastExtremum = history[0].x;
+        let reversals = 0;
+
+        for (let i = 1; i < history.length; i++) {
+          const dx = history[i].x - lastExtremum;
+          if (direction === 0) {
+            if (Math.abs(dx) >= minStroke) {
+              direction = dx > 0 ? 1 : -1;
+              lastExtremum = history[i].x;
+            }
+          } else if (direction === 1) { // Was moving right
+            if (history[i].x > lastExtremum) {
+              lastExtremum = history[i].x;
+            } else if (lastExtremum - history[i].x >= minStroke) {
+              reversals++;
+              direction = -1;
+              lastExtremum = history[i].x;
+            }
+          } else if (direction === -1) { // Was moving left
+            if (history[i].x < lastExtremum) {
+              lastExtremum = history[i].x;
+            } else if (history[i].x - lastExtremum >= minStroke) {
+              reversals++;
+              direction = 1;
+              lastExtremum = history[i].x;
+            }
+          }
+        }
+        return reversals >= 2;
+      }
+
+      function processHandGestures(landmarks) {
+        if (!landmarks || landmarks.length < 21) return;
+        const now = performance.now();
+        const dist = (i, j) => Math.hypot(landmarks[i].x - landmarks[j].x, landmarks[i].y - landmarks[j].y);
+
+        // Hand scale: distance between wrist (0) and middle MCP (9)
+        const handSize = dist(0, 9);
+        if (handSize < 0.04) {
+          state.currentGesture = 'None';
+          if (gestureDisplay) gestureDisplay.textContent = 'NONE';
+          return;
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 1 — GESTURE DEFINITIONS FROM MEDIAPIPE 21 LANDMARKS
+        // ------------------------------------------------------------------
+
+        // 1. Point Gesture:
+        // Index finger (5–8) extended straight.
+        // Middle, ring, and pinky fingertips (12, 16, 20) are curled below their PIP joints
+        // (closer to palm center landmark 9 / wrist 0). Thumb position is ignored.
+        const isIndexExtended = (dist(8, 0) > dist(6, 0)) && (dist(8, 0) > 1.15 * handSize);
+        const isMiddleCurled = (dist(12, 9) < dist(10, 9)) || (dist(12, 0) < dist(10, 0)) || (dist(12, 0) < 1.08 * handSize);
+        const isRingCurled = (dist(16, 9) < dist(14, 9)) || (dist(16, 0) < dist(14, 0)) || (dist(16, 0) < 1.08 * handSize);
+        const isPinkyCurled = (dist(20, 9) < dist(18, 9)) || (dist(20, 0) < dist(18, 0)) || (dist(20, 0) < 1.08 * handSize);
+
+        const isPoint = isIndexExtended && isMiddleCurled && isRingCurled && isPinkyCurled &&
+                        (dist(8, 0) > dist(12, 0) + 0.18 * handSize);
+
+        // 2. Fist / Punch Gesture:
+        // All four fingertips (8, 12, 16, 20) curled close to the palm.
+        // Each fingertip's distance to the wrist (0) is near its minimum, well below extended threshold.
+        const isIndexCurled = (dist(8, 9) < dist(6, 9)) || (dist(8, 0) < dist(6, 0)) || (dist(8, 0) < 1.05 * handSize);
+        const isFist = isIndexCurled && isMiddleCurled && isRingCurled && isPinkyCurled &&
+                       (dist(8, 0) < 1.12 * handSize) &&
+                       (dist(12, 0) < 1.12 * handSize) &&
+                       (dist(16, 0) < 1.12 * handSize) &&
+                       (dist(20, 0) < 1.12 * handSize);
+
+        // 3. Wave Gesture:
+        // Track the palm center (landmark 9) x-position over the last ~15 frames (roughly 0.5–1s).
+        // Multiple direction reversals (left-right-left, or right-left-right) within that window.
+        state.gestureControl.palmXHistory.push({ x: landmarks[9].x, t: now });
+        if (state.gestureControl.palmXHistory.length > 22) {
+          state.gestureControl.palmXHistory.shift();
+        }
+        state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 1000);
+
+        let isWave = false;
+        if (!isFist && !isPoint && state.gestureControl.palmXHistory.length >= 4) {
+          isWave = evaluateWaveReversals(state.gestureControl.palmXHistory);
+        }
+
+        // Determine current frame gesture name
+        let candidate = 'Neutral';
+        if (isPoint) candidate = 'Point';
+        else if (isFist) candidate = 'Fist';
+        else if (isWave) candidate = 'Wave';
+        else candidate = 'Neutral';
+
+        // Update UI gesture pill
+        if (candidate === 'Point') {
+          state.currentGesture = 'Point';
+        } else if (candidate === 'Fist') {
+          state.currentGesture = 'Fist';
+        } else if (candidate === 'Wave') {
+          state.currentGesture = 'Wave';
+        } else {
+          // Check pinch between Thumb (4) and Index (8)
+          const pinchDist = dist(4, 8);
+          state.currentGesture = (pinchDist < 0.06) ? 'Pinch' : 'Open Hand';
+        }
+        if (gestureDisplay) gestureDisplay.textContent = state.currentGesture.toUpperCase();
+
+        // ------------------------------------------------------------------
+        // STEP 2 & 3 — DEBOUNCE, FEEDBACK & TIMER DISPATCH
+        // ------------------------------------------------------------------
+        state.gestureControl._debug = {
+          isPoint,
+          isFist,
+          isWave,
+          candidate,
+          palmXHistoryLen: state.gestureControl.palmXHistory.length,
+          lastFired: state.gestureControl.lastFiredGesture,
+          isWaitingForNeutral: state.gestureControl.isWaitingForNeutral,
+          cooldownRemaining: Math.max(0, state.gestureControl.cooldownMs - (now - state.gestureControl.lastFiredTime))
+        };
+
+        // If hand is in neutral/open state, clear lock so subsequent gesture can fire
+        if (candidate === 'Neutral') {
+          state.gestureControl.isWaitingForNeutral = false;
+          state.gestureControl.lastFiredGesture = null;
+          return;
+        }
+
+        // If waiting for neutral release, do not re-trigger while gesture is held
+        if (state.gestureControl.isWaitingForNeutral) {
+          return;
+        }
+
+        // Check 600ms cooldown after any gesture fires
+        if (now - state.gestureControl.lastFiredTime < state.gestureControl.cooldownMs) {
+          return;
+        }
+
+        // Execute Timer Actions
+        if (candidate === 'Point') {
+          startPenTimer(null, 'Gesture: Point');
+          showGestureFeedback('Point detected — timer started');
+        } else if (candidate === 'Fist') {
+          pausePenTimer(null, 'Gesture: Fist');
+          showGestureFeedback('Fist detected — timer stopped');
+        } else if (candidate === 'Wave') {
+          resetPenTimer();
+          showGestureFeedback('Wave detected — timer reset');
+        }
+
+        // Lock until hand returns to open/neutral state
+        state.gestureControl.lastFiredTime = now;
+        state.gestureControl.lastFiredGesture = candidate;
+        state.gestureControl.isWaitingForNeutral = true;
+        state.gestureControl.palmXHistory = [];
+      }
+
+      if (timerResetBtn) {
+        timerResetBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          resetPenTimer();
+        });
+      }
+
+      if (timerToggleBtn) {
+        timerToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (state.penTimer.isRunning) {
+            pausePenTimer(null, 'Manual Button Toggle');
+          } else {
+            startPenTimer(null, 'Manual Button Toggle');
+          }
+        });
+      }
+
+      // ----------------------------------------------------------------------
+      // WEB AUDIO SYNTHESIZER (ZERO EXTERNAL ASSETS)
+      // ----------------------------------------------------------------------
+      function initAudio() {
+        if (!state.audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            state.audioCtx = new AudioContextClass();
+          }
+        }
+        if (state.audioCtx && state.audioCtx.state === 'suspended') {
+          state.audioCtx.resume();
+        }
+      }
+
+      function playSciFiChime(type) {
+        if (!state.soundEnabled) return;
+        try {
+          initAudio();
+          if (!state.audioCtx) return;
+          const ctx = state.audioCtx;
+          const now = ctx.currentTime;
+
+          if (type === 'fire') {
+            // Futuristic dual-oscillator resonant bell ping
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc1.type = 'sine';
+            osc2.type = 'triangle';
+            osc1.frequency.setValueAtTime(587.33, now); // D5
+            osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+            osc2.frequency.setValueAtTime(1174.66, now); // D6
+
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.6);
+            osc2.stop(now + 0.6);
+          } else if (type === 'register') {
+            // Ascending dual confirmation tone
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+          } else if (type === 'reset') {
+            // Descending sweep
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(260, now + 0.25);
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.26);
+          }
+        } catch (e) {
+          // Audio fallback gracefully silent
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // LOG & TOAST NOTIFICATION HELPERS
+      // ----------------------------------------------------------------------
+      function appendLog(message, isTrigger = false) {
+        const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${isTrigger ? 'trigger' : ''}`;
+        entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span>${message}</span>`;
+        logStreamContainer.prepend(entry);
+        
+        // Cap entries at 50
+        while (logStreamContainer.children.length > 50) {
+          logStreamContainer.removeChild(logStreamContainer.lastChild);
+        }
+      }
+
+      function showToast(title, message, icon = '') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const tag = icon ? `<div class="toast-icon" style="font-size:10px; font-weight:800; border:1px solid var(--color-white); padding:2px 5px; border-radius:2px; font-family:var(--font-mono);">${icon}</div>` : '';
+        toast.innerHTML = `
+          ${tag}
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${message}</div>
+          </div>
+        `;
+        toastContainer.appendChild(toast);
+        
+        // Trigger slide-in
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        // Slide-out and remove after 3s
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 400);
+        }, 3200);
+      }
+
+      // ----------------------------------------------------------------------
+      // HARDENED CAMERA & MEDIAPIPE INITIALIZATION SEQUENCE (5s TIMEOUT)
+      // ----------------------------------------------------------------------
+      let mediaPipeWatchdogTimer = null;
+
+      async function initWebcam() {
+        setSystemInitState('requesting-camera', 'Requesting webcam media stream from browser...');
+        if (cameraErrorOverlay) cameraErrorOverlay.style.display = 'none';
+
+        // Diagnostic detection if running directly on file://
+        if (window.location.protocol === 'file:') {
+          appendLog('⚠️ Notice: Running from file://. Webcams require a secure context (http://localhost:8000).');
+        }
+
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error(window.isSecureContext === false 
+              ? 'Insecure Context (file:// detected). Chrome requires http://localhost:8000 for camera access.' 
+              : 'getUserMedia not supported in this browser environment');
+          }
+
+          let stream;
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: 'user'
+              },
+              audio: false
+            });
+          } catch (constraintErr) {
+            console.warn('[Camera ideal constraints failed, falling back to basic {video: true}]', constraintErr);
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          }
+
+          state.cameraStream = stream;
+          video.srcObject = stream;
+          state.feedMode = 'webcam';
+          feedWebcamBtn.classList.add('active');
+          feedVirtualBtn.classList.remove('active');
+          video.style.display = 'block';
+          virtualCanvas.style.display = 'none';
+
+          // Wait for video stream to be ready before playing
+          await new Promise((resolve) => {
+            if (video.readyState >= 2) return resolve();
+            video.onloadedmetadata = () => resolve();
+            setTimeout(resolve, 2000); // 2s safety fallback
+          });
+
+          try {
+            await video.play();
+          } catch (playErr) {
+            console.warn('[video.play autoplay notice]', playErr);
+          }
+
+          setSystemInitState('camera-granted', 'Webcam stream active (720p). Initializing MediaPipe Hands...');
+          guideBannerText.textContent = 'Click any physical object on your desk to register';
+
+          initMediaPipe();
+        } catch (err) {
+          const reason = err.name === 'NotAllowedError' 
+            ? 'Permission denied by user / browser'
+            : (err.name === 'NotFoundError' ? 'No physical camera detected' : err.message);
+
+          console.warn('[Camera Access Failed - Graceful Fallback Activated]', err);
+          
+          setSystemInitState('failed', `Camera unavailable (${reason}). Fallback: Virtual Desk active.`, true);
+          
+          if (cameraErrorOverlay && cameraErrorReason) {
+            cameraErrorReason.textContent = reason;
+            cameraErrorOverlay.style.display = 'flex';
+          }
+
+          showToast('Camera Unavailable', `Using Virtual Desk fallback: ${reason}`, 'CAM');
+          activateVirtualDeskMode(`Camera unavailable: ${reason}`);
+        }
+      }
+
+      function initMediaPipe() {
+        if (!state.cameraStream) {
+          setSystemInitState('failed', 'No live camera stream. Manual Pointer mode active.', false);
+          return;
+        }
+
+        setSystemInitState('loading-model', 'Loading MediaPipe Hands model from CDN...');
+
+        // 8-second watchdog timer: never hang silently
+        if (mediaPipeWatchdogTimer) clearTimeout(mediaPipeWatchdogTimer);
+        mediaPipeWatchdogTimer = setTimeout(() => {
+          if (state.initStatus !== 'tracking-ready') {
+            console.warn('[MediaPipe Watchdog Fired] Model failed to report ready within 8000ms.');
+            setSystemInitState('failed', 'MediaPipe CDN loading timed out. Live camera active with precision ROI tracking.', false);
+            state.mediaPipeActive = false;
+            showToast('Hands: Fallback Mode', 'Hand model timed out. Live camera ROI tracking active.', 'HANDS');
+          }
+        }, 8000);
+
+        try {
+          if (typeof window.Hands === 'undefined') {
+            throw new Error('MediaPipe Hands script not available on CDN or blocked by network');
+          }
+
+          state.hands = new window.Hands({
+            locateFile: (file) => `https://unpkg.com/@mediapipe/hands/${file}`
+          });
+
+          state.hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+
+          state.hands.onResults((results) => {
+            if (mediaPipeWatchdogTimer) {
+              clearTimeout(mediaPipeWatchdogTimer);
+              mediaPipeWatchdogTimer = null;
+            }
+            if (state.initStatus !== 'tracking-ready') {
+              state.mediaPipeActive = true;
+              setSystemInitState('tracking-ready', 'MediaPipe Hands ready (21 3D joint landmarks active)');
+            }
+            onHandResults(results);
+          });
+
+          // Pre-initialize model so it transitions to ready without needing a hand in view
+          state.hands.initialize().then(() => {
+            if (mediaPipeWatchdogTimer) {
+              clearTimeout(mediaPipeWatchdogTimer);
+              mediaPipeWatchdogTimer = null;
+            }
+            state.mediaPipeActive = true;
+            setSystemInitState('tracking-ready', 'MediaPipe Hands ready (21 3D joint landmarks active)');
+          }).catch(err => {
+            console.warn('[Hands.initialize caught]', err);
+            setSystemInitState('failed', `Hand tracking model unavailable (${err.message}). Live camera ROI active.`, false);
+          });
+        } catch (err) {
+          if (mediaPipeWatchdogTimer) {
+            clearTimeout(mediaPipeWatchdogTimer);
+            mediaPipeWatchdogTimer = null;
+          }
+          console.warn('[MediaPipe Init Error]', err);
+          setSystemInitState('failed', `MediaPipe model script failed (${err.message}). Live camera ROI active.`, false);
+          state.mediaPipeActive = false;
+        }
+      }
+
+      function activateVirtualDeskMode(reasonText = '') {
+        state.feedMode = 'virtual';
+        feedVirtualBtn.classList.add('active');
+        feedWebcamBtn.classList.remove('active');
+        video.style.display = 'none';
+        virtualCanvas.style.display = 'block';
+        guideBannerText.textContent = reasonText 
+          ? `Fallback active (${reasonText})`
+          : 'Virtual Desk (Fallback): Drag props to preview spatial actions';
+      }
+
+      function activateWebcamMode() {
+        if (cameraErrorOverlay) cameraErrorOverlay.style.display = 'none';
+        if (!state.cameraStream) {
+          initWebcam();
+        } else {
+          state.feedMode = 'webcam';
+          feedWebcamBtn.classList.add('active');
+          feedVirtualBtn.classList.remove('active');
+          video.style.display = 'block';
+          virtualCanvas.style.display = 'none';
+          guideBannerText.textContent = 'Click any physical object on your desk to register';
+        }
+      }
+
+      function activateWebcamMode() {
+        if (!state.cameraStream) {
+          initWebcam();
+        } else {
+          state.feedMode = 'webcam';
+          feedWebcamBtn.classList.add('active');
+          feedVirtualBtn.classList.remove('active');
+          video.style.display = 'block';
+          virtualCanvas.style.display = 'none';
+          guideBannerText.textContent = 'Click any physical object on your desk to register';
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // VIRTUAL DESK ENGINE (INTERACTIVE MOCK DESK WITH PEN & RESTING DOCK)
+      // ----------------------------------------------------------------------
+      const virtualDesk = {
+        props: [
+          { id: 'v_mug', name: 'Ceramic Mug', color: '#999999', x: 180, y: 300, r: 36, label: 'MUG' },
+          { id: 'v_note', name: 'Sticky Note', color: '#E5E5E5', x: 380, y: 220, r: 32, label: 'NOTE' },
+          { id: 'v_pen', name: 'Pen', color: '#FFFFFF', x: 580, y: 330, r: 28, label: 'PEN' },
+          { id: 'v_coin', name: 'Brass Token', color: '#333333', x: 320, y: 430, r: 22, label: 'TOKEN' }
+        ],
+        draggedProp: null,
+        dragOffsetX: 0,
+        dragOffsetY: 0
+      };
+
+      function renderVirtualDesk() {
+        const w = virtualCanvas.width;
+        const h = virtualCanvas.height;
+        if (!w || !h) return;
+
+        // Render sleek pure black desk surface
+        vCtx.fillStyle = '#000000';
+        vCtx.fillRect(0, 0, w, h);
+
+        // Tech grid lines in true neutral dark gray
+        vCtx.strokeStyle = '#333333';
+        vCtx.lineWidth = 1;
+        const step = 40;
+        for (let x = 0; x < w; x += step) {
+          vCtx.beginPath();
+          vCtx.moveTo(x, 0);
+          vCtx.lineTo(x, h);
+          vCtx.stroke();
+        }
+        for (let y = 0; y < h; y += step) {
+          vCtx.beginPath();
+          vCtx.moveTo(0, y);
+          vCtx.lineTo(w, y);
+          vCtx.stroke();
+        }
+
+        // Desk Mat overlay
+        vCtx.fillStyle = '#000000';
+        vCtx.strokeStyle = '#333333';
+        vCtx.lineWidth = 1;
+        vCtx.beginPath();
+        vCtx.roundRect(50, 50, w - 100, h - 100, 4);
+        vCtx.fill();
+        vCtx.stroke();
+
+        // Label on mat
+        vCtx.fillStyle = '#999999';
+        vCtx.font = 'bold 11px monospace';
+        vCtx.fillText('DESK-OS SPATIAL CAPTURE WORKSPACE', 70, 80);
+
+        // Render Pen Dock Resting Slot on desk
+        vCtx.save();
+        vCtx.setLineDash([4, 4]);
+        vCtx.strokeStyle = state.penTimer.isRunning ? '#FFFFFF' : '#999999';
+        vCtx.lineWidth = 2;
+        vCtx.beginPath();
+        vCtx.arc(580, 330, 38, 0, Math.PI * 2);
+        vCtx.stroke();
+        vCtx.fillStyle = state.penTimer.isRunning ? '#333333' : 'transparent';
+        vCtx.fill();
+        vCtx.font = 'bold 10px monospace';
+        vCtx.fillStyle = state.penTimer.isRunning ? '#FFFFFF' : '#999999';
+        vCtx.textAlign = 'center';
+        vCtx.fillText('PEN DOCK (RESTING)', 580, 382);
+        vCtx.restore();
+
+        // Render virtual physical props
+        virtualDesk.props.forEach(prop => {
+          vCtx.save();
+          vCtx.fillStyle = prop.color;
+          vCtx.beginPath();
+          vCtx.arc(prop.x, prop.y, prop.r, 0, Math.PI * 2);
+          vCtx.fill();
+
+          // High-contrast border
+          vCtx.strokeStyle = (prop.color === '#FFFFFF' || prop.color === '#E5E5E5') ? '#000000' : '#FFFFFF';
+          vCtx.lineWidth = 2;
+          vCtx.stroke();
+
+          // Label inside prop
+          vCtx.font = 'bold 11px monospace';
+          vCtx.textAlign = 'center';
+          vCtx.textBaseline = 'middle';
+          vCtx.fillStyle = (prop.color === '#FFFFFF' || prop.color === '#E5E5E5') ? '#000000' : '#FFFFFF';
+          vCtx.fillText(prop.label || prop.name, prop.x, prop.y);
+          vCtx.restore();
+
+          // Name pill under prop
+          vCtx.fillStyle = '#000000';
+          vCtx.font = '10px monospace';
+          const txt = prop.name.toUpperCase();
+          const tw = vCtx.measureText(txt).width;
+          vCtx.fillRect(prop.x - tw / 2 - 4, prop.y + prop.r + 6, tw + 8, 16);
+          vCtx.strokeStyle = '#FFFFFF';
+          vCtx.lineWidth = 1;
+          vCtx.strokeRect(prop.x - tw / 2 - 4, prop.y + prop.r + 6, tw + 8, 16);
+          vCtx.fillStyle = '#FFFFFF';
+          vCtx.fillText(txt, prop.x, prop.y + prop.r + 18);
+        });
+      }
+
+      // Drag interaction on virtual desk
+      feedContainer.addEventListener('mousedown', (e) => {
+        if (state.feedMode !== 'virtual') return;
+        const rect = arCanvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) * (virtualCanvas.width / rect.width);
+        const mouseY = (e.clientY - rect.top) * (virtualCanvas.height / rect.height);
+
+        // Check if clicked any prop
+        for (const prop of virtualDesk.props) {
+          const dist = Math.hypot(mouseX - prop.x, mouseY - prop.y);
+          if (dist <= prop.r + 5) {
+            virtualDesk.draggedProp = prop;
+            virtualDesk.dragOffsetX = mouseX - prop.x;
+            virtualDesk.dragOffsetY = mouseY - prop.y;
+            break;
+          }
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (state.feedMode === 'virtual' && virtualDesk.draggedProp) {
+          const rect = arCanvas.getBoundingClientRect();
+          const mouseX = (e.clientX - rect.left) * (virtualCanvas.width / rect.width);
+          const mouseY = (e.clientY - rect.top) * (virtualCanvas.height / rect.height);
+          virtualDesk.draggedProp.x = mouseX - virtualDesk.dragOffsetX;
+          virtualDesk.draggedProp.y = mouseY - virtualDesk.dragOffsetY;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        virtualDesk.draggedProp = null;
+      });
+
+      let lastHandResultsTime = 0;
+      function onHandResults(results) {
+        const now = performance.now();
+        if (!results || !results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+          // If a hand was detected recently (within 250ms), tolerate transient tracking drop
+          if (now - lastHandResultsTime < 250) {
+            return;
+          }
+          state.handLandmarks = [];
+          state.handTouchPoint = null;
+          state.currentGesture = 'None';
+          if (gestureDisplay) gestureDisplay.textContent = 'None';
+          // Hand left the frame: clear lock so next gesture can fire
+          state.gestureControl.isWaitingForNeutral = false;
+          state.gestureControl.lastFiredGesture = null;
+          state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 1000);
+          return;
+        }
+
+        lastHandResultsTime = now;
+        const landmarks = results.multiHandLandmarks[0];
+        state.handLandmarks = landmarks;
+
+        // Landmark 8 is the Index Finger Tip
+        const indexTip = landmarks[8];
+        // Mirror X because the webcam video is mirrored
+        const canvasX = (1 - indexTip.x) * arCanvas.width;
+        const canvasY = indexTip.y * arCanvas.height;
+
+        state.handTouchPoint = { x: canvasX, y: canvasY };
+
+        // Evaluate Gestures & Timer Control
+        processHandGestures(landmarks);
+      }
+
+      // ----------------------------------------------------------------------
+      // OBJECT TRACKING ENGINE (CV VIA CANVAS getImageData ROI)
+      // ----------------------------------------------------------------------
+      // This is the core demo-reliable tracker: extracts average color & luminance
+      // within a 44x44 ROI and tracks it frame-by-frame across a localized search window.
+      function extractROIPatch(sourceCtx, centerX, centerY, size = 44) {
+        const half = Math.floor(size / 2);
+        const sx = Math.max(0, Math.min(sourceCtx.canvas.width - size, centerX - half));
+        const sy = Math.max(0, Math.min(sourceCtx.canvas.height - size, centerY - half));
+        
+        try {
+          const imgData = sourceCtx.getImageData(sx, sy, size, size);
+          const d = imgData.data;
+          let rTotal = 0, gTotal = 0, bTotal = 0, count = 0;
+
+          for (let i = 0; i < d.length; i += 4) {
+            rTotal += d[i];
+            gTotal += d[i + 1];
+            bTotal += d[i + 2];
+            count++;
+          }
+
+          const avgR = Math.round(rTotal / count);
+          const avgG = Math.round(gTotal / count);
+          const avgB = Math.round(bTotal / count);
+
+          return {
+            imgData: imgData,
+            size: size,
+            avgR: avgR,
+            avgG: avgG,
+            avgB: avgB,
+            hex: rgbToHex(avgR, avgG, avgB)
+          };
+        } catch (e) {
+          return {
+            imgData: null,
+            size: size,
+            avgR: 255,
+            avgG: 255,
+            avgB: 255,
+            hex: '#FFFFFF'
+          };
+        }
+      }
+
+      function rgbToHex(r, g, b) {
+        return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+      }
+
+      function updateObjectTracking(sourceCtx) {
+        const searchRadius = 40; // Pixels to search around last known position
+        const w = sourceCtx.canvas.width;
+        const h = sourceCtx.canvas.height;
+        const now = performance.now();
+
+        state.objects.forEach(obj => {
+          // If in virtual desk mode, lock position directly to the virtual prop if mapped
+          if (state.feedMode === 'virtual' && obj.virtualPropId) {
+            const vp = virtualDesk.props.find(p => p.id === obj.virtualPropId);
+            if (vp) {
+              obj.x = vp.x;
+              obj.y = vp.y;
+              obj.confidence = 0.98;
+            }
+          } else {
+            // Live computer vision tracking via color distance minimization
+            const halfROI = Math.floor(obj.roiPatch.size / 2);
+            let bestX = obj.x;
+            let bestY = obj.y;
+            let minDiff = Infinity;
+            let minRawDiff = Infinity;
+
+            const minX = Math.max(halfROI, Math.round(obj.x - searchRadius));
+            const maxX = Math.min(w - halfROI, Math.round(obj.x + searchRadius));
+            const minY = Math.max(halfROI, Math.round(obj.y - searchRadius));
+            const maxY = Math.min(h - halfROI, Math.round(obj.y + searchRadius));
+
+            // Step size 4 for high performance 60fps tracking
+            for (let cx = minX; cx <= maxX; cx += 4) {
+              for (let cy = minY; cy <= maxY; cy += 4) {
+                try {
+                  const pixel = sourceCtx.getImageData(cx, cy, 1, 1).data;
+                  const dr = pixel[0] - obj.roiPatch.avgR;
+                  const dg = pixel[1] - obj.roiPatch.avgG;
+                  const db = pixel[2] - obj.roiPatch.avgB;
+                  const diff = Math.sqrt(dr * dr + dg * dg + db * db);
+                  const distFromCurrent = Math.hypot(cx - obj.x, cy - obj.y);
+                  const cost = diff + (distFromCurrent / searchRadius) * 16;
+
+                  if (cost < minDiff) {
+                    minDiff = cost;
+                    minRawDiff = diff;
+                    bestX = cx;
+                    bestY = cy;
+                  }
+                } catch (e) {
+                  // Guard out of bounds
+                }
+              }
+            }
+
+            // If a valid match was found, smoothly update position
+            if (minRawDiff < 60) {
+              const alpha = 0.45;
+              obj.x = alpha * bestX + (1 - alpha) * obj.x;
+              obj.y = alpha * bestY + (1 - alpha) * obj.y;
+              obj.confidence = Math.max(0, 1 - (minRawDiff / 255));
+              obj.lostFrames = 0;
+            } else {
+              obj.confidence = 0.2;
+              obj.lostFrames = (obj.lostFrames || 0) + 1;
+            }
+          }
+
+          // Compute displacement from reference position
+          const dx = obj.x - obj.initialX;
+          const dy = obj.y - obj.initialY;
+          const dist = Math.hypot(dx, dy);
+
+          obj.currentDisplacement = { dx, dy, dist };
+
+          // ------------------------------------------------------------------
+          // PEN PICKUP / DOCK AUTO-STOPWATCH EVALUATION (REAL CAMERA FEED ROI)
+          // ------------------------------------------------------------------
+          const isPenObject = obj.isPenTimer || 
+                              (obj.name && obj.name.toLowerCase().includes('pen')) || 
+                              (obj.rule && obj.rule.action_label && obj.rule.action_label.includes('timer'));
+
+          if (isPenObject) {
+            const rx = (typeof obj.restingX === 'number') ? obj.restingX : obj.initialX;
+            const ry = (typeof obj.restingY === 'number') ? obj.restingY : obj.initialY;
+            const rr = obj.restingRadius || 38;
+
+            // Calibration / grace period right after registration
+            if (obj.registerGraceUntil && now < obj.registerGraceUntil) {
+              obj.dockStatus = 'docked';
+              obj.dockLiftCounter = 0;
+              obj.dockReturnCounter = 5;
+              obj.x = rx;
+              obj.y = ry;
+              obj.restingBaseline = extractROIPatch(sourceCtx, rx, ry, 36);
+              return;
+            }
+
+            // 1. Live ROI sampling of the physical resting dock spot on the camera feed
+            const currentDock = extractROIPatch(sourceCtx, rx, ry, 36);
+            const baseline = obj.restingBaseline || obj.roiPatch;
+            const dockColorShift = Math.hypot(
+              currentDock.avgR - baseline.avgR,
+              currentDock.avgG - baseline.avgG,
+              currentDock.avgB - baseline.avgB
+            );
+
+            // 2. Tracked pen displacement
+            const distFromResting = Math.hypot(obj.x - rx, obj.y - ry);
+
+            // 3. Hand proximity detection near resting dock (higher confidence fusion)
+            let handNearDock = false;
+            let minHandDist = Infinity;
+            if (state.handLandmarks && state.handLandmarks.length > 0) {
+              for (const idx of [0, 4, 8, 12]) {
+                const lm = state.handLandmarks[idx];
+                if (lm) {
+                  const hx = (1 - lm.x) * arCanvas.width;
+                  const hy = lm.y * arCanvas.height;
+                  const d = Math.hypot(hx - rx, hy - ry);
+                  if (d < minHandDist) minHandDist = d;
+                }
+              }
+              if (minHandDist < 100) handNearDock = true;
+            }
+
+            // 4. Physical Lift Detection on the real video feed:
+            // Lifted when:
+            // - The tracked pen ROI has displaced > 32px away from the dock, OR
+            // - The resting dock color has shifted by > 40Δ while pen is displaced > 15px
+            const isLifted = (distFromResting > 32) || (dockColorShift > 40 && distFromResting > 15);
+
+            if (isLifted) {
+              obj.dockLiftCounter = (obj.dockLiftCounter || 0) + 1;
+              obj.dockReturnCounter = 0;
+
+              // Confirm after 2 consecutive frames for rock-solid stability
+              if (obj.dockLiftCounter >= 2 && obj.dockStatus !== 'lifted') {
+                obj.dockStatus = 'lifted';
+                startPenTimer(obj, `Real physical pen lifted (dock shift: ${Math.round(dockColorShift)}Δ, dist: ${Math.round(distFromResting)}px)`);
+              }
+            } else {
+              obj.dockReturnCounter = (obj.dockReturnCounter || 0) + 1;
+              obj.dockLiftCounter = 0;
+
+              // Confirm after 2 consecutive frames of pen being rested in dock
+              if (obj.dockReturnCounter >= 2 && obj.dockStatus !== 'docked') {
+                obj.dockStatus = 'docked';
+                pausePenTimer(obj, 'Real physical pen returned to resting dock');
+              }
+            }
+          }
+
+          // ------------------------------------------------------------------
+          // TRIGGER EVALUATION
+          // ------------------------------------------------------------------
+          const cooldownElapsed = !obj.lastFired || (now - obj.lastFired > 2200);
+
+          if (cooldownElapsed) {
+            // 1. Move Trigger
+            if (obj.rule.trigger === 'move') {
+              let conditionMet = false;
+
+              if (obj.rule.direction === 'left' && dx < -state.motionThreshold) conditionMet = true;
+              else if (obj.rule.direction === 'right' && dx > state.motionThreshold) conditionMet = true;
+              else if (obj.rule.direction === 'up' && dy < -state.motionThreshold) conditionMet = true;
+              else if (obj.rule.direction === 'down' && dy > state.motionThreshold) conditionMet = true;
+              else if (!obj.rule.direction && dist > state.motionThreshold) conditionMet = true;
+
+              if (conditionMet) {
+                fireRule(obj, `Displacement: dx=${Math.round(dx)}px`);
+              }
+            }
+
+            // 2. Touch Trigger
+            else if (obj.rule.trigger === 'touch') {
+              let touchDetected = false;
+
+              // Check MediaPipe hand landmarks touch
+              if (state.handTouchPoint) {
+                const handDist = Math.hypot(state.handTouchPoint.x - obj.x, state.handTouchPoint.y - obj.y);
+                if (handDist < state.touchRadius + 15) {
+                  touchDetected = true;
+                }
+              }
+
+              if (touchDetected) {
+                fireRule(obj, `Hand proximity touch (${Math.round(dist)}px)`);
+              }
+            }
+
+            // 3. Remove / Lift Trigger
+            else if (obj.rule.trigger === 'remove') {
+              if (obj.lostFrames && obj.lostFrames > 12) {
+                fireRule(obj, `Object lifted or removed from desk`);
+              }
+            }
+          }
+        });
+      }
+
+      // ----------------------------------------------------------------------
+      // RULE EXECUTION & ACTION DISPATCHER
+      // ----------------------------------------------------------------------
+      async function fireRule(obj, reason = '') {
+        obj.lastFired = performance.now();
+        obj.fireCount = (obj.fireCount || 0) + 1;
+        obj.isShockwaveActive = true;
+        obj.shockwaveRadius = 10;
+
+        // Visual pulse in DOM
+        const cardElem = document.getElementById(`node-card-${obj.id}`);
+        if (cardElem) {
+          cardElem.classList.remove('fired');
+          void cardElem.offsetWidth; // Force reflow
+          cardElem.classList.add('fired');
+          const countBadge = cardElem.querySelector('.node-stats');
+          if (countBadge) {
+            countBadge.textContent = `Fired ${obj.fireCount}x • Active`;
+          }
+        }
+
+        // Play high-tech synthesized sound
+        playSciFiChime('fire');
+
+        const actionLabel = obj.rule.action_label || 'action_fired';
+        const actionType = obj.rule.action_type || 'webhook';
+
+        // Presentation Toast
+        showToast(
+          `${actionType.toUpperCase()}: ${actionLabel}`,
+          `Triggered by ${obj.name} (${reason})`,
+          actionType.toUpperCase()
+        );
+
+        appendLog(`${obj.name} -> ${actionType}: ${actionLabel} (${reason})`, true);
+
+        // Real Webhook Dispatch if user supplied an endpoint (safely guarded)
+        if (state.webhookUrl) {
+          try {
+            fetch(state.webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event: 'desk_os_trigger',
+                object_id: obj.id,
+                object_name: obj.name,
+                trigger: obj.rule.trigger,
+                action: actionLabel,
+                timestamp: new Date().toISOString()
+              })
+            }).catch(() => {
+              // Gracefully swallow network fetch errors
+            });
+          } catch (e) {
+            // Guarded
+          }
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // NLP RULE PARSING (GEMINI 1.5 + BULLETPROOF LOCAL SMART NLP PARSER)
+      // ----------------------------------------------------------------------
+      async function parseRuleText(text) {
+        // Attempt Gemini API call with 3000ms strict timeout
+        if (state.geminiApiKey && state.geminiApiKey.trim().length > 10) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(state.geminiApiKey)}`;
+            const prompt = `You are the strict JSON parser for Desk-OS. Parse this plain text rule into strict JSON with no markdown and no backticks:
+{"trigger": "move"|"touch"|"remove", "action_label": "string", "action_type": "webhook"|"code"|"notification"|"accessibility", "direction": "left"|"right"|"up"|"down"|null}
+Rule: "${text}"`;
+
+            const res = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+              }),
+              signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+              const data = await res.json();
+              const rawJsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawJsonText) {
+                const cleaned = rawJsonText.replace(/```json/gi, '').replace(/```/gi, '').trim();
+                const parsed = JSON.parse(cleaned);
+                appendLog(`Gemini parsed rule: [${parsed.trigger}] ➔ ${parsed.action_label}`);
+                return parsed;
+              }
+            }
+          } catch (e) {
+            console.warn('[Gemini call skipped, using local parser]', e);
+          }
+        }
+
+        // Bulletproof Local Smart Keyword/NLP Parser (0ms latency, zero internet requirement)
+        return localKeywordParser(text);
+      }
+
+      function localKeywordParser(rawText) {
+        const text = rawText.toLowerCase();
+
+        // 1. Detect Trigger & Direction
+        let trigger = 'move';
+        let direction = null;
+
+        if (/\b(touch|tap|press|contact|finger|grab|pinch)\b/i.test(text)) {
+          trigger = 'touch';
+        } else if (/\b(remove|lift|lifted|take away|pick up|disappear|gone|hide)\b/i.test(text)) {
+          trigger = 'remove';
+        } else {
+          trigger = 'move';
+          if (/\bleft\b/i.test(text)) direction = 'left';
+          else if (/\bright\b/i.test(text)) direction = 'right';
+          else if (/\bup\b/i.test(text)) direction = 'up';
+          else if (/\bdown\b/i.test(text)) direction = 'down';
+        }
+
+        // 2. Detect Action Type
+        let action_type = 'webhook';
+        if (/\b(slack|notify|notification|alert|toast|message|email|sms)\b/i.test(text)) {
+          action_type = 'notification';
+        } else if (/\b(spotify|music|song|pause|play|audio|volume)\b/i.test(text)) {
+          action_type = 'notification';
+        } else if (/\b(accessibility|speak|say|read|voice)\b/i.test(text)) {
+          action_type = 'accessibility';
+        } else if (/\b(code|script|calc|compute|eval)\b/i.test(text)) {
+          action_type = 'code';
+        } else {
+          action_type = 'webhook';
+        }
+
+        // 3. Generate clean action label
+        let action_label = 'trigger_action';
+        if (/light|lamp|bulb/i.test(text)) {
+          action_label = /off/i.test(text) ? 'desk_lights_off' : 'desk_lights_on';
+        } else if (/spotify|music|song/i.test(text)) {
+          action_label = /pause/i.test(text) ? 'spotify_pause' : 'spotify_play';
+        } else if (/slack|alert/i.test(text)) {
+          action_label = 'dispatch_slack_ping';
+        } else if (/volume/i.test(text)) {
+          action_label = /up/i.test(text) ? 'volume_increase' : 'volume_decrease';
+        } else {
+          // Extract last 2 or 3 meaningful words
+          const words = text.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(w => !['when','i','this','the','a','an','to','my'].includes(w));
+          action_label = words.slice(-2).join('_') || 'trigger_webhook';
+        }
+
+        appendLog(`Autonomous Parser extracted: [${trigger}${direction ? ' ' + direction : ''}] ➔ ${action_label}`);
+        return {
+          trigger,
+          direction,
+          action_type,
+          action_label
+        };
+      }
+
+      // ----------------------------------------------------------------------
+      // AR RENDER LOOP & VISUAL OVERLAYS
+      // ----------------------------------------------------------------------
+      let lastFpsTime = performance.now();
+      let frameCount = 0;
+
+      function renderARLoop() {
+        requestAnimationFrame(renderARLoop);
+
+        // Calculate FPS
+        frameCount++;
+        const now = performance.now();
+        if (now - lastFpsTime >= 1000) {
+          fpsPill.textContent = `${frameCount} FPS`;
+          frameCount = 0;
+          lastFpsTime = now;
+        }
+
+        // Synchronize AR Canvas resolution to container
+        const rect = feedContainer.getBoundingClientRect();
+        if (arCanvas.width !== rect.width || arCanvas.height !== rect.height) {
+          arCanvas.width = rect.width;
+          arCanvas.height = rect.height;
+          virtualCanvas.width = rect.width;
+          virtualCanvas.height = rect.height;
+        }
+
+        // Render virtual desk if in virtual feed mode
+        if (state.feedMode === 'virtual') {
+          renderVirtualDesk();
+        }
+
+        // Clear AR Canvas
+        arCtx.clearRect(0, 0, arCanvas.width, arCanvas.height);
+
+        // Update CV tracking of registered objects
+        const sourceCtx = state.feedMode === 'virtual' ? vCtx : null;
+        if (sourceCtx || (state.feedMode === 'webcam' && video.readyState >= 2)) {
+          // If webcam, we can use video as source
+          updateObjectTracking(sourceCtx || getTempWebcamCtx());
+        }
+
+        // Pump live video frame to MediaPipe Hands if active and fully ready
+        if (state.feedMode === 'webcam' && state.mediaPipeActive && state.initStatus === 'tracking-ready' && state.hands && video.readyState >= 2 && !state.isHandsBusy) {
+          state.isHandsBusy = true;
+          state.hands.send({ image: video }).catch(() => {}).finally(() => {
+            state.isHandsBusy = false;
+          });
+        }
+
+        // Live update Pen Focus Stopwatch timer
+        updatePenTimerDisplay();
+
+        // Draw 21-point MediaPipe hand landmarks (high-tech AR skeleton)
+        drawHandLandmarks();
+
+        // Draw registered object reticles, laser connector wires, and shockwaves
+        drawRegisteredObjectOverlays();
+
+        // Draw interactive cursor / touch ring if hand is present
+        drawHandTouchCursor();
+      }
+
+      // Temporary context helper for sampling webcam feed
+      let tempWebcamCanvas = null;
+      let tempWebcamCtx = null;
+      function getTempWebcamCtx() {
+        if (!tempWebcamCanvas) {
+          tempWebcamCanvas = document.createElement('canvas');
+          tempWebcamCtx = tempWebcamCanvas.getContext('2d', { willReadFrequently: true });
+        }
+        if (tempWebcamCanvas.width !== arCanvas.width || tempWebcamCanvas.height !== arCanvas.height) {
+          tempWebcamCanvas.width = arCanvas.width;
+          tempWebcamCanvas.height = arCanvas.height;
+        }
+        // Draw mirrored video to match user perspective
+        tempWebcamCtx.save();
+        tempWebcamCtx.scale(-1, 1);
+        tempWebcamCtx.drawImage(video, -arCanvas.width, 0, arCanvas.width, arCanvas.height);
+        tempWebcamCtx.restore();
+        return tempWebcamCtx;
+      }
+
+      function drawHandLandmarks() {
+        if (!state.handLandmarks || state.handLandmarks.length === 0) return;
+
+        const lm = state.handLandmarks;
+        const w = arCanvas.width;
+        const h = arCanvas.height;
+
+        // Draw connections in crisp white with subtle opacity
+        arCtx.save();
+        arCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        arCtx.lineWidth = 1.5;
+
+        // Connections mapping
+        const connections = [
+          [0,1],[1,2],[2,3],[3,4], // Thumb
+          [0,5],[5,6],[6,7],[7,8], // Index
+          [5,9],[9,10],[10,11],[11,12], // Middle
+          [9,13],[13,14],[14,15],[15,16], // Ring
+          [13,17],[17,18],[18,19],[19,20], // Pinky
+          [0,17] // Palm base
+        ];
+
+        connections.forEach(([i, j]) => {
+          const x1 = (1 - lm[i].x) * w;
+          const y1 = lm[i].y * h;
+          const x2 = (1 - lm[j].x) * w;
+          const y2 = lm[j].y * h;
+          arCtx.beginPath();
+          arCtx.moveTo(x1, y1);
+          arCtx.lineTo(x2, y2);
+          arCtx.stroke();
+        });
+
+        // Draw joint points: index fingertip (8) inverted white-on-black; other joints white
+        lm.forEach((pt, idx) => {
+          const x = (1 - pt.x) * w;
+          const y = pt.y * h;
+          if (idx === 8) {
+            arCtx.fillStyle = '#FFFFFF';
+            arCtx.beginPath();
+            arCtx.arc(x, y, 6, 0, Math.PI * 2);
+            arCtx.fill();
+            arCtx.fillStyle = '#000000';
+            arCtx.beginPath();
+            arCtx.arc(x, y, 3, 0, Math.PI * 2);
+            arCtx.fill();
+          } else {
+            arCtx.fillStyle = '#FFFFFF';
+            arCtx.beginPath();
+            arCtx.arc(x, y, (idx === 4 || idx === 12 || idx === 16 || idx === 20) ? 3.5 : 2.5, 0, Math.PI * 2);
+            arCtx.fill();
+          }
+        });
+
+        arCtx.restore();
+      }
+
+      function drawHandTouchCursor() {
+        if (!state.handTouchPoint) return;
+        const pt = state.handTouchPoint;
+
+        arCtx.save();
+        // Solid high-contrast white touch cursor
+        arCtx.strokeStyle = '#FFFFFF';
+        arCtx.lineWidth = 2;
+        arCtx.beginPath();
+        arCtx.arc(pt.x, pt.y, state.touchRadius, 0, Math.PI * 2);
+        arCtx.stroke();
+
+        // Crosshairs
+        arCtx.beginPath();
+        arCtx.moveTo(pt.x - 6, pt.y);
+        arCtx.lineTo(pt.x + 6, pt.y);
+        arCtx.moveTo(pt.x, pt.y - 6);
+        arCtx.lineTo(pt.x, pt.y + 6);
+        arCtx.stroke();
+
+        arCtx.restore();
+      }
+
+      function drawRegisteredObjectOverlays() {
+        const time = performance.now() * 0.003;
+        const now = performance.now();
+
+        state.objects.forEach((obj, idx) => {
+          const x = obj.x;
+          const y = obj.y;
+          const boxSize = 54;
+          const half = boxSize / 2;
+          const cornerLen = 12;
+          const isFiredRecently = (now - obj.lastFired < 1400);
+
+          arCtx.save();
+
+          // 1. Shockwave Pulse if fired (white expanding ring)
+          if (obj.isShockwaveActive) {
+            obj.shockwaveRadius += 3.5;
+            const alpha = Math.max(0, 1 - (obj.shockwaveRadius / 95));
+            arCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            arCtx.lineWidth = 2.5;
+            arCtx.beginPath();
+            arCtx.arc(x, y, obj.shockwaveRadius, 0, Math.PI * 2);
+            arCtx.stroke();
+
+            if (obj.shockwaveRadius > 95) {
+              obj.isShockwaveActive = false;
+            }
+          }
+
+          // 2. High-Contrast Reticle Bounding Corners
+          arCtx.strokeStyle = isFiredRecently ? '#FFFFFF' : '#E5E5E5';
+          arCtx.lineWidth = isFiredRecently ? 3 : 2;
+
+          // Corner brackets
+          arCtx.beginPath();
+          arCtx.moveTo(x - half, y - half + cornerLen);
+          arCtx.lineTo(x - half, y - half);
+          arCtx.lineTo(x - half + cornerLen, y - half);
+
+          arCtx.moveTo(x + half - cornerLen, y - half);
+          arCtx.lineTo(x + half, y - half);
+          arCtx.lineTo(x + half, y - half + cornerLen);
+
+          arCtx.moveTo(x - half, y + half - cornerLen);
+          arCtx.lineTo(x - half, y + half);
+          arCtx.lineTo(x - half + cornerLen, y + half);
+
+          arCtx.moveTo(x + half - cornerLen, y + half);
+          arCtx.lineTo(x + half, y + half);
+          arCtx.lineTo(x + half, y + half - cornerLen);
+          arCtx.stroke();
+
+          // 3. Central Anchor Point
+          arCtx.fillStyle = '#FFFFFF';
+          arCtx.beginPath();
+          arCtx.arc(x, y, 5, 0, Math.PI * 2);
+          arCtx.fill();
+          arCtx.strokeStyle = '#000000';
+          arCtx.lineWidth = 1.5;
+          arCtx.stroke();
+
+          // Draw Pen Resting Dock Slot if this object is a pen
+          const isPen = obj.isPenTimer || (obj.name && obj.name.toLowerCase().includes('pen'));
+          if (isPen) {
+            const rx = (typeof obj.restingX === 'number') ? obj.restingX : obj.initialX;
+            const ry = (typeof obj.restingY === 'number') ? obj.restingY : obj.initialY;
+            const rr = obj.restingRadius || 38;
+
+            arCtx.save();
+            arCtx.setLineDash([4, 4]);
+            arCtx.strokeStyle = state.penTimer.isRunning ? '#FFFFFF' : '#999999';
+            arCtx.lineWidth = 2;
+            arCtx.beginPath();
+            arCtx.arc(rx, ry, rr, 0, Math.PI * 2);
+            arCtx.stroke();
+            arCtx.setLineDash([]);
+
+            arCtx.fillStyle = state.penTimer.isRunning ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
+            arCtx.fill();
+
+            arCtx.font = 'bold 10px monospace';
+            arCtx.fillStyle = state.penTimer.isRunning ? '#FFFFFF' : '#999999';
+            arCtx.textAlign = 'center';
+            arCtx.fillText(state.penTimer.isRunning ? 'DOCK (PEN LIFTED)' : 'DOCK (RESTING)', rx, ry + rr + 14);
+            arCtx.restore();
+          }
+
+          // 4. Floating AR Node-Card & Curved Bezier Laser Wire
+          const cardW = 184;
+          const cardH = 60;
+          const bob = Math.sin(time * 2 + idx) * 5;
+          
+          // Position card to the right if space permits, else left
+          let cardX = x + half + 45;
+          if (cardX + cardW > arCanvas.width - 15) {
+            cardX = x - half - cardW - 45;
+          }
+          let cardY = Math.max(15, Math.min(arCanvas.height - cardH - 15, y - cardH / 2 + bob));
+
+          // Save bounds for interactive clicking
+          obj.cardBounds = { x: cardX, y: cardY, w: cardW, h: cardH };
+
+          // Bezier connector points
+          const startX = cardX > x ? (x + half) : (x - half);
+          const startY = y;
+          const endX = cardX > x ? cardX : (cardX + cardW);
+          const endY = cardY + cardH / 2;
+          const cp1X = startX + (endX - startX) * 0.5;
+          const cp1Y = startY;
+          const cp2X = startX + (endX - startX) * 0.5;
+          const cp2Y = endY;
+
+          // Draw Laser Wire in high-contrast monochrome
+          arCtx.beginPath();
+          arCtx.moveTo(startX, startY);
+          arCtx.bezierCurveTo(cp1X, cp1Y, cp2X, cp2Y, endX, endY);
+          if (isFiredRecently) {
+            arCtx.strokeStyle = '#FFFFFF';
+            arCtx.lineWidth = 3;
+          } else {
+            arCtx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            arCtx.lineWidth = 1.5;
+          }
+          arCtx.stroke();
+
+          // Draw moving photon energy packet along the curve
+          const t = (time * 0.7 + idx * 0.35) % 1;
+          const px = (1-t)**3 * startX + 3*(1-t)**2*t * cp1X + 3*(1-t)*t**2 * cp2X + t**3 * endX;
+          const py = (1-t)**3 * startY + 3*(1-t)**2*t * cp1Y + 3*(1-t)*t**2 * cp2Y + t**3 * endY;
+          
+          arCtx.fillStyle = '#FFFFFF';
+          arCtx.beginPath();
+          arCtx.arc(px, py, isFiredRecently ? 4 : 2.5, 0, Math.PI * 2);
+          arCtx.fill();
+
+          // Draw Editorial High-Contrast AR Card (Inverted White-on-Black or Black-on-White)
+          arCtx.beginPath();
+          arCtx.roundRect(cardX, cardY, cardW, cardH, 2);
+          if (isFiredRecently) {
+            arCtx.fillStyle = '#FFFFFF';
+            arCtx.fill();
+            arCtx.strokeStyle = '#000000';
+            arCtx.lineWidth = 2;
+            arCtx.stroke();
+          } else {
+            arCtx.fillStyle = '#000000';
+            arCtx.fill();
+            arCtx.strokeStyle = '#FFFFFF';
+            arCtx.lineWidth = 1.5;
+            arCtx.stroke();
+          }
+
+          // Inside Card Content:
+          // Row 1: Object Name & Status Pill
+          arCtx.font = 'bold 12px monospace';
+          arCtx.fillStyle = isFiredRecently ? '#000000' : '#FFFFFF';
+          arCtx.textAlign = 'left';
+          arCtx.fillText(obj.name.toUpperCase(), cardX + 10, cardY + 18);
+
+          // Status Badge Pill
+          const statusText = isFiredRecently ? 'FIRED' : (obj.fireCount > 0 ? `FIRED ${obj.fireCount}X` : 'READY');
+          arCtx.font = 'bold 9px monospace';
+          const sw = arCtx.measureText(statusText).width;
+          arCtx.fillStyle = isFiredRecently ? '#000000' : '#FFFFFF';
+          arCtx.fillRect(cardX + cardW - sw - 14, cardY + 8, sw + 8, 14);
+          arCtx.fillStyle = isFiredRecently ? '#FFFFFF' : '#000000';
+          arCtx.fillText(statusText, cardX + cardW - sw - 10, cardY + 19);
+
+          // Row 2: Trigger Badge
+          const trigText = obj.rule.trigger === 'move' 
+            ? `MOVE ${obj.rule.direction ? obj.rule.direction.toUpperCase() : 'ANY'}`
+            : (obj.rule.trigger === 'touch' ? 'TOUCH' : 'REMOVED');
+          arCtx.font = '10px monospace';
+          arCtx.fillStyle = isFiredRecently ? '#333333' : '#999999';
+          arCtx.fillText(trigText, cardX + 10, cardY + 34);
+
+          // Row 3: Action Label
+          arCtx.font = 'bold 11px monospace';
+          arCtx.fillStyle = isFiredRecently ? '#000000' : '#FFFFFF';
+          const actionText = `-> ${obj.rule.action_label.toUpperCase()}`;
+          arCtx.fillText(actionText, cardX + 10, cardY + 49);
+
+          // 5. Motion displacement vector indicator
+          if (obj.currentDisplacement && obj.currentDisplacement.dist > 12) {
+            arCtx.strokeStyle = '#FFFFFF';
+            arCtx.lineWidth = 1.5;
+            arCtx.beginPath();
+            arCtx.moveTo(obj.initialX, obj.initialY);
+            arCtx.lineTo(obj.x, obj.y);
+            arCtx.stroke();
+
+            // Initial anchor
+            arCtx.strokeStyle = '#999999';
+            arCtx.beginPath();
+            arCtx.arc(obj.initialX, obj.initialY, 8, 0, Math.PI * 2);
+            arCtx.stroke();
+
+            // Vector distance pill
+            arCtx.fillStyle = '#000000';
+            arCtx.fillRect(obj.x + 12, obj.y + 12, 54, 16);
+            arCtx.strokeStyle = '#FFFFFF';
+            arCtx.lineWidth = 1;
+            arCtx.strokeRect(obj.x + 12, obj.y + 12, 54, 16);
+            arCtx.fillStyle = '#FFFFFF';
+            arCtx.font = '10px monospace';
+            arCtx.fillText(`${Math.round(obj.currentDisplacement.dist)}px`, obj.x + 16, obj.y + 24);
+          }
+
+          arCtx.restore();
+        });
+      }
+
+      // ----------------------------------------------------------------------
+      // INTERACTIVE OBJECT REGISTRATION & AR CLICK HANDLER
+      // ----------------------------------------------------------------------
+      arCanvas.addEventListener('click', (e) => {
+        // If clicking during virtual drag, ignore
+        if (state.feedMode === 'virtual' && virtualDesk.draggedProp) return;
+
+        const rect = arCanvas.getBoundingClientRect();
+        const clickX = (e.clientX - rect.left) * (arCanvas.width / rect.width);
+        const clickY = (e.clientY - rect.top) * (arCanvas.height / rect.height);
+
+        // 1. Check if user clicked an existing object's reticle OR its floating AR card!
+        for (const obj of state.objects) {
+          const clickedReticle = Math.hypot(clickX - obj.x, clickY - obj.y) <= 35;
+          const clickedCard = obj.cardBounds && 
+            clickX >= obj.cardBounds.x && clickX <= obj.cardBounds.x + obj.cardBounds.w &&
+            clickY >= obj.cardBounds.y && clickY <= obj.cardBounds.y + obj.cardBounds.h;
+
+          if (clickedReticle || clickedCard) {
+            // Tactile live trigger directly from AR Canvas!
+            fireRule(obj, clickedCard ? 'AR Card Tap' : 'Reticle Touch');
+            return;
+          }
+        }
+
+        // 2. If clicked empty space, initiate new physical object registration
+        const sourceCtx = state.feedMode === 'virtual' ? vCtx : getTempWebcamCtx();
+        const roiPatch = extractROIPatch(sourceCtx, Math.round(clickX), Math.round(clickY), 48);
+
+        // Find if this click is close to a virtual prop
+        let matchedVirtualProp = null;
+        if (state.feedMode === 'virtual') {
+          matchedVirtualProp = virtualDesk.props.find(p => Math.hypot(p.x - clickX, p.y - clickY) <= p.r + 15);
+        }
+
+        const objectName = matchedVirtualProp ? matchedVirtualProp.name : `Physical Object #${state.objects.length + 1}`;
+
+        state.pendingRegistration = {
+          x: Math.round(clickX),
+          y: Math.round(clickY),
+          color: matchedVirtualProp ? matchedVirtualProp.color : roiPatch.hex,
+          roiPatch: roiPatch,
+          name: objectName,
+          virtualPropId: matchedVirtualProp ? matchedVirtualProp.id : null
+        };
+
+        // Render patch into the registration preview canvas
+        regPatchCtx.clearRect(0, 0, 60, 60);
+        if (roiPatch.imgData) {
+          regPatchCtx.putImageData(roiPatch.imgData, 6, 6);
+        } else {
+          regPatchCtx.fillStyle = state.pendingRegistration.color;
+          regPatchCtx.fillRect(0, 0, 60, 60);
+        }
+
+        regObjectTitle.textContent = objectName;
+        regColorSwatch.style.backgroundColor = state.pendingRegistration.color;
+        regCoordsText.textContent = `Coordinates: (${Math.round(clickX)}, ${Math.round(clickY)})`;
+        ruleInputText.value = '';
+
+        // Open Drawer
+        registrationDrawer.style.display = 'block';
+        ruleInputText.focus();
+
+        playSciFiChime('register');
+      });
+
+      cancelRegBtn.addEventListener('click', () => {
+        registrationDrawer.style.display = 'none';
+        state.pendingRegistration = null;
+      });
+
+      // Quick rule chips
+      document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          ruleInputText.value = btn.dataset.rule;
+        });
+      });
+
+      // Bind Rule Action
+      bindRuleBtn.addEventListener('click', async () => {
+        const text = ruleInputText.value.trim() || 'When moved left, turn off desk lights';
+        if (!state.pendingRegistration) return;
+
+        bindRuleBtn.textContent = '⚡ Analyzing...';
+        bindRuleBtn.disabled = true;
+
+        const parsedRule = await parseRuleText(text);
+
+        const isPen = state.pendingRegistration.name.toLowerCase().includes('pen') || text.toLowerCase().includes('pen');
+
+        const newObj = {
+          id: 'obj_' + Date.now(),
+          name: isPen && !state.pendingRegistration.name.toLowerCase().includes('pen') ? 'Pen' : state.pendingRegistration.name,
+          color: state.pendingRegistration.color,
+          initialX: state.pendingRegistration.x,
+          initialY: state.pendingRegistration.y,
+          restingX: state.pendingRegistration.x,
+          restingY: state.pendingRegistration.y,
+          restingRadius: 38,
+          restingBaseline: state.pendingRegistration.roiPatch,
+          isPenTimer: isPen,
+          dockStatus: 'docked',
+          dockLiftCounter: 0,
+          dockReturnCounter: 5,
+          registerGraceUntil: performance.now() + 400,
+          x: state.pendingRegistration.x,
+          y: state.pendingRegistration.y,
+          roiPatch: state.pendingRegistration.roiPatch,
+          virtualPropId: state.pendingRegistration.virtualPropId,
+          rule: parsedRule,
+          rawRuleText: text,
+          lastFired: 0,
+          fireCount: 0
+        };
+
+        if (isPen) {
+          state.penTimer.isRunning = false;
+          state.penTimer.lastTimestamp = null;
+          state.penTimer.penObject = newObj;
+          updatePenTimerDisplay();
+        }
+
+        state.objects.push(newObj);
+        state.pendingRegistration = null;
+
+        bindRuleBtn.textContent = 'BIND NODE';
+        bindRuleBtn.disabled = false;
+        registrationDrawer.style.display = 'none';
+
+        renderNodesList();
+        playSciFiChime('register');
+        showToast(
+          isPen ? 'Pen Bound with Focus Timer' : 'Node Bound Successfully', 
+          `${newObj.name} connected to ${parsedRule.action_label}`, 
+          isPen ? 'TIMER' : 'NODE'
+        );
+      });
+
+      // ----------------------------------------------------------------------
+      // NODES LIST RENDERER
+      // ----------------------------------------------------------------------
+      function renderNodesList() {
+        nodesContainer.innerHTML = '';
+
+        if (state.objects.length === 0) {
+          if (nodesCountBadge) nodesCountBadge.style.display = 'none';
+          if (activeNodesBadge) activeNodesBadge.style.display = 'none';
+          return;
+        }
+
+        if (nodesCountBadge) {
+          nodesCountBadge.style.display = 'inline-block';
+          nodesCountBadge.textContent = `${state.objects.length} Active`;
+        }
+        if (activeNodesBadge) {
+          activeNodesBadge.style.display = 'inline-flex';
+          activeNodesBadge.querySelector('span').textContent = `${state.objects.length} Active Task${state.objects.length === 1 ? '' : 's'}`;
+        }
+
+        state.objects.forEach(obj => {
+          const card = document.createElement('div');
+          card.className = 'node-card';
+          card.id = `node-card-${obj.id}`;
+
+          const triggerClass = obj.rule.trigger || 'move';
+          const triggerLabel = obj.isPenTimer 
+            ? 'Pen Lift -> Stopwatch'
+            : (obj.rule.trigger === 'move' 
+              ? `Move ${obj.rule.direction || 'Any'}` 
+              : (obj.rule.trigger === 'touch' ? 'Hand Touch' : 'Removed'));
+
+          card.innerHTML = `
+            <div class="node-thumb">
+              <div style="width:100%; height:100%; background:${obj.color}; opacity:0.85;"></div>
+            </div>
+            <div class="node-body">
+              <div class="node-title-row">
+                <span class="node-title">${obj.name}</span>
+                <span class="badge-trigger ${triggerClass}">${triggerLabel}</span>
+              </div>
+              <div class="node-action-desc">
+                <span>-> <strong>${obj.rule.action_label}</strong> (${obj.rule.action_type})</span>
+              </div>
+              <div class="node-stats">
+                Fired ${obj.fireCount || 0}x • ${obj.isPenTimer ? 'Resting Dock Active' : 'Cooldown Ready'}
+              </div>
+            </div>
+            <div class="node-actions">
+              <button class="btn-fire" data-id="${obj.id}" title="Simulate trigger fire now">
+                Fire
+              </button>
+              <button class="btn-delete" data-id="${obj.id}" title="Delete node">
+                ✕
+              </button>
+            </div>
+          `;
+
+          // Manual test trigger button
+          card.querySelector('.btn-fire').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (obj.isPenTimer) {
+              if (state.penTimer.isRunning) {
+                pausePenTimer(obj, 'Manual Test Click');
+              } else {
+                startPenTimer(obj, 'Manual Test Click');
+              }
+            } else {
+              fireRule(obj, 'Manual Test Trigger');
+            }
+          });
+
+          // Delete button
+          card.querySelector('.btn-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteNode(obj.id);
+          });
+
+          nodesContainer.appendChild(card);
+        });
+      }
+
+      function deleteNode(id) {
+        state.objects = state.objects.filter(o => o.id !== id);
+        renderNodesList();
+        appendLog(`Unbound node: ${id}`);
+      }
+
+      // ----------------------------------------------------------------------
+      // SPEECH RECOGNITION (VOICE INPUT FOR RULES)
+      // ----------------------------------------------------------------------
+      let recognition = null;
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (SpeechRecognitionClass) {
+        recognition = new SpeechRecognitionClass();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          voiceMicBtn.classList.add('listening');
+          ruleInputText.placeholder = 'Listening... speak rule now';
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          ruleInputText.value = transcript;
+          appendLog(`Voice input recognized: "${transcript}"`);
+        };
+
+        recognition.onerror = () => {
+          voiceMicBtn.classList.remove('listening');
+          ruleInputText.placeholder = 'e.g. When I move this mug left, turn the light off';
+        };
+
+        recognition.onend = () => {
+          voiceMicBtn.classList.remove('listening');
+          ruleInputText.placeholder = 'e.g. When I move this mug left, turn the light off';
+        };
+      }
+
+      voiceMicBtn.addEventListener('click', () => {
+        if (!recognition) {
+          showToast('Speech Not Supported', 'Please type rule in text box', 'ℹ️');
+          return;
+        }
+        try {
+          recognition.start();
+        } catch (e) {
+          recognition.stop();
+        }
+      });
+
+      // ----------------------------------------------------------------------
+      // DEMO MODE (JUDGE SAFETY NET WITH PEN FOCUS TIMER)
+      // ----------------------------------------------------------------------
+      demoModeBtn.addEventListener('click', () => {
+        state.isDemoMode = !state.isDemoMode;
+
+        if (state.isDemoMode) {
+          demoModeBtn.classList.add('active');
+          demoModeBtn.textContent = 'DEMO MODE (ACTIVE)';
+          loadDemoPrewiredNodes();
+          showToast('Demo Mode Active', 'Pre-wired Mug, Sticky Note, and Pen Stopwatch', 'DEMO');
+          appendLog('Demo Mode activated: Mug, Sticky Note, and Pen pre-wired for stage presentation');
+        } else {
+          demoModeBtn.classList.remove('active');
+          demoModeBtn.textContent = 'DEMO MODE';
+          resetAllState();
+        }
+      });
+
+      function loadDemoPrewiredNodes() {
+        if (!state.cameraStream) {
+          activateVirtualDeskMode('Camera unavailable — using virtual desk fallback');
+        } else {
+          state.feedMode = 'webcam';
+          feedWebcamBtn.classList.add('active');
+          feedVirtualBtn.classList.remove('active');
+          video.style.display = 'block';
+          virtualCanvas.style.display = 'none';
+        }
+
+        const sourceCtx = (state.feedMode === 'webcam' && video.readyState >= 2) ? getTempWebcamCtx() : vCtx;
+        const mugPatch = extractROIPatch(sourceCtx, 180, 300, 48);
+        const notePatch = extractROIPatch(sourceCtx, 380, 220, 48);
+        const penPatch = extractROIPatch(sourceCtx, 580, 330, 48);
+
+        state.objects = [
+          {
+            id: 'demo_mug',
+            name: 'Ceramic Mug',
+            color: mugPatch.hex || '#999999',
+            initialX: 180,
+            initialY: 300,
+            x: 180,
+            y: 300,
+            virtualPropId: 'v_mug',
+            roiPatch: mugPatch,
+            rule: {
+              trigger: 'move',
+              direction: 'left',
+              action_label: 'desk_lights_off',
+              action_type: 'webhook'
+            },
+            rawRuleText: 'When moved left, turn off desk lights',
+            lastFired: 0,
+            fireCount: 0
+          },
+          {
+            id: 'demo_note',
+            name: 'Sticky Note',
+            color: notePatch.hex || '#E5E5E5',
+            initialX: 380,
+            initialY: 220,
+            x: 380,
+            y: 220,
+            virtualPropId: 'v_note',
+            roiPatch: notePatch,
+            rule: {
+              trigger: 'touch',
+              direction: null,
+              action_label: 'spotify_pause',
+              action_type: 'notification'
+            },
+            rawRuleText: 'When touched, pause Spotify music',
+            lastFired: 0,
+            fireCount: 0
+          },
+          {
+            id: 'demo_pen',
+            name: 'Pen',
+            color: penPatch.hex || '#FFFFFF',
+            initialX: 580,
+            initialY: 330,
+            restingX: 580,
+            restingY: 330,
+            restingRadius: 38,
+            restingBaseline: penPatch,
+            isPenTimer: true,
+            dockStatus: 'docked',
+            dockLiftCounter: 0,
+            dockReturnCounter: 5,
+            registerGraceUntil: performance.now() + 400,
+            x: 580,
+            y: 330,
+            virtualPropId: 'v_pen',
+            roiPatch: penPatch,
+            rule: {
+              trigger: 'remove',
+              direction: null,
+              action_label: 'focus_stopwatch',
+              action_type: 'code'
+            },
+            rawRuleText: 'When physical pen lifted from resting dock, auto-start focus stopwatch timer',
+            lastFired: 0,
+            fireCount: 0
+          }
+        ];
+
+        state.penTimer.isRunning = false;
+        state.penTimer.lastTimestamp = null;
+        updatePenTimerDisplay();
+
+        renderNodesList();
+      }
+
+      // ----------------------------------------------------------------------
+      // RESET DEMO BUTTON
+      // ----------------------------------------------------------------------
+      function resetAllState() {
+        state.objects = [];
+        state.isDemoMode = false;
+        demoModeBtn.classList.remove('active');
+        demoModeBtn.textContent = 'DEMO MODE';
+        registrationDrawer.style.display = 'none';
+        state.pendingRegistration = null;
+
+        // Reset virtual props positions
+        virtualDesk.props[0].x = 180; virtualDesk.props[0].y = 300;
+        virtualDesk.props[1].x = 380; virtualDesk.props[1].y = 220;
+        virtualDesk.props[2].x = 580; virtualDesk.props[2].y = 330;
+        virtualDesk.props[3].x = 320; virtualDesk.props[3].y = 430;
+
+        state.gestureControl.isWaitingForNeutral = false;
+        state.gestureControl.lastFiredGesture = null;
+        state.gestureControl.palmXHistory = [];
+
+        resetPenTimer();
+        renderNodesList();
+        playSciFiChime('reset');
+        showToast('Demo Reset', 'Ready for the next judge evaluation', 'RESET');
+        appendLog('Demo state cleared. All spatial nodes and timer reset.');
+      }
+
+      resetDemoBtn.addEventListener('click', resetAllState);
+
+      // ----------------------------------------------------------------------
+      // CONTROLS & SETTINGS
+      // ----------------------------------------------------------------------
+      feedWebcamBtn.addEventListener('click', activateWebcamMode);
+      feedVirtualBtn.addEventListener('click', () => activateVirtualDeskMode('User selected manual fallback'));
+
+      if (retryWebcamBtn) {
+        retryWebcamBtn.addEventListener('click', () => {
+          if (cameraErrorOverlay) cameraErrorOverlay.style.display = 'none';
+          initWebcam();
+        });
+      }
+
+      if (dismissFallbackBtn) {
+        dismissFallbackBtn.addEventListener('click', () => {
+          if (cameraErrorOverlay) cameraErrorOverlay.style.display = 'none';
+          activateVirtualDeskMode('Camera access dismissed');
+        });
+      }
+
+      sensitivitySlider.addEventListener('input', (e) => {
+        state.motionThreshold = parseInt(e.target.value, 10);
+      });
+
+      sfxToggleBtn.addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        sfxToggleBtn.textContent = state.soundEnabled ? 'AUDIO' : 'MUTE';
+        showToast('Sound Effects', state.soundEnabled ? 'Synthesized Audio Active' : 'Muted', 'AUDIO');
+      });
+
+      clearLogBtn.addEventListener('click', () => {
+        logStreamContainer.innerHTML = '';
+        appendLog('Activity log cleared');
+      });
+
+      // Settings Modal
+      settingsBtn.addEventListener('click', () => {
+        geminiApiKeyInput.value = state.geminiApiKey;
+        customWebhookInput.value = state.webhookUrl;
+        settingsModal.style.display = 'flex';
+      });
+
+      closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+      });
+
+      saveSettingsBtn.addEventListener('click', () => {
+        state.geminiApiKey = geminiApiKeyInput.value.trim();
+        state.webhookUrl = customWebhookInput.value.trim();
+        localStorage.setItem('desk_os_gemini_key', state.geminiApiKey);
+        localStorage.setItem('desk_os_webhook_url', state.webhookUrl);
+
+        if (parserStatusText) {
+          if (state.geminiApiKey) {
+            parserStatusText.textContent = 'NLP: Gemini 1.5 Flash';
+          } else {
+            parserStatusText.textContent = 'NLP: Autonomous (Fast)';
+          }
+        }
+
+        settingsModal.style.display = 'none';
+        showToast('Settings Saved', 'Custom configuration applied', 'CONFIG');
+      });
+
+      // ----------------------------------------------------------------------
+      // BOOTSTRAP INITIALIZATION
+      // ----------------------------------------------------------------------
+      function boot() {
+        initWebcam();
+        renderARLoop();
+        renderNodesList();
+
+        if (parserStatusText && state.geminiApiKey) {
+          parserStatusText.textContent = 'NLP: Gemini 1.5 Flash';
+        }
+
+        console.log('%c Desk-OS Loaded Successfully %c Tangible-Bridge Presentation Engine Ready ', 
+          'background: #FFFFFF; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 2px;',
+          'background: #000000; color: #FFFFFF; font-weight: bold; padding: 4px 8px; border-radius: 2px;'
+        );
+
+        // Expose public API for debugging and programmatic test runners
+        state.isEngineReady = true;
+        window.DeskOS = {
+          state,
+          virtualDesk,
+          activateVirtualDeskMode,
+          renderVirtualDesk,
+          startPenTimer,
+          pausePenTimer,
+          resetPenTimer,
+          processHandGestures,
+          onHandResults,
+          showGestureFeedback
+        };
+      }
+
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', boot);
+      } else {
+        boot();
+      }
+
+    })();
+  </script>
+</body>
+</html>
