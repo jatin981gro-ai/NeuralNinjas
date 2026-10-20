@@ -2257,8 +2257,8 @@
       <div class="footer-legal-col">
         <div class="footer-col-heading">LEGAL</div>
         <div class="footer-nav">
-          <a href="/privacy" class="footer-link">Privacy Policy</a>
-          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="privacy.html" class="footer-link">Privacy Policy</a>
+          <a href="terms.html" class="footer-link">Terms of Service</a>
           <!-- TODO: add real contact / social link -->
         </div>
       </div>
@@ -3073,13 +3073,13 @@
 
         // Diagnostic detection if running directly on file://
         if (window.location.protocol === 'file:') {
-          appendLog('⚠️ Notice: Running from file://. Webcams require a secure context (http://localhost:8000).');
+          appendLog('Notice: Running from file://. Webcams require a secure context (HTTPS or localhost).');
         }
 
         try {
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             throw new Error(window.isSecureContext === false 
-              ? 'Insecure Context (file:// detected). Chrome requires http://localhost:8000 for camera access.' 
+              ? 'Insecure Context (file:// detected). Webcams require HTTPS or http://localhost:8000.' 
               : 'getUserMedia not supported in this browser environment');
           }
 
@@ -4776,6 +4776,20 @@ Rule: "${text}"`;
         initVoiceAnnouncements();
         initDemoVideo();
         initHeaderFooter();
+
+        const debugServerTip = document.getElementById('debugServerTip');
+        if (debugServerTip) {
+          if (window.isSecureContext) {
+            if (window.location.protocol === 'https:') {
+              debugServerTip.textContent = 'SECURE CONTEXT (HTTPS) // LOCAL COMPUTER VISION ACTIVE';
+            } else {
+              debugServerTip.textContent = 'SECURE CONTEXT (LOCALHOST) // LOCAL COMPUTER VISION ACTIVE';
+            }
+          } else {
+            debugServerTip.textContent = 'TIP: OPEN VIA HTTPS OR HTTP://LOCALHOST:8000 FOR FULL WEBCAM CONTEXT';
+          }
+        }
+
         initWebcam();
         renderARLoop();
         renderNodesList();

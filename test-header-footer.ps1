@@ -120,7 +120,20 @@ try {
     $null = Send-Cdp "Runtime.enable"
     $null = Read-CdpResponse ($script:msgId - 1) 2000
 
-    Start-Sleep -Milliseconds 800
+    Write-Host "Waiting for DeskOS engine to bootstrap..." -ForegroundColor Yellow
+    $booted = $false
+    $bootRetries = 25
+    while ($bootRetries -gt 0 -and -not $booted) {
+        Start-Sleep -Milliseconds 300
+        try {
+            $isDefined = Eval-Js "typeof window.DeskOS !== 'undefined' && !!document.querySelector('header')"
+            if ($isDefined) { $booted = $true }
+        } catch {
+            $bootRetries--
+        }
+    }
+    if (-not $booted) { throw "Timeout waiting for DeskOS to bootstrap!" }
+    Write-Host "DeskOS Engine bootstrapped successfully!" -ForegroundColor Green
 
     # 3. Header & Footer Links, Wordmark, Dynamic Year, No Emojis, No Dead Hrefs
     Write-Host "`n[3/4] Inspecting Header & Footer Architecture..." -ForegroundColor Yellow
