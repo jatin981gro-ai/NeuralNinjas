@@ -77,11 +77,17 @@ The project includes headless Chrome DevTools test suites covering all architect
 # 1. Typography System & Font Integrity Check
 powershell -ExecutionPolicy Bypass -File .\test-typography.ps1
 
-# 2. Header, Footer, Legal Routes & Mobile Responsiveness
+# 2. Header, Footer, Legal Routes & Structural Consistency
 powershell -ExecutionPolicy Bypass -File .\test-header-footer.ps1
 
-# 3. Real Camera Feed, MediaPipe Hands, Pen Tracker & Gestures E2E
+# 3. Multi-Breakpoint Responsive Design & Touch Target Suite (375px, 428px, 768px, 1024px, 1280px)
+powershell -ExecutionPolicy Bypass -File .\test-responsive.ps1
+
+# 4. Real Camera Feed, MediaPipe Hands, Pen Tracker & Gestures E2E
 powershell -ExecutionPolicy Bypass -File .\test-desk-os.ps1
+
+# 5. Live GitHub Pages Deployment & Secure Context Incognito E2E
+powershell -ExecutionPolicy Bypass -File .\test-live-deployment.ps1
 ```
 
 All suites execute against headless Chrome with 100% pass rates and zero console errors.
