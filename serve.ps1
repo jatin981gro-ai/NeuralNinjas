@@ -16,6 +16,15 @@ try {
             if ([string]::IsNullOrEmpty($path)) { $path = "index.html" }
             $filePath = Join-Path $root $path
 
+            if (Test-Path $filePath -PathType Container) {
+                $indexPath = Join-Path $filePath "index.html"
+                if (Test-Path $indexPath -PathType Leaf) {
+                    $filePath = $indexPath
+                }
+            } elseif (-not (Test-Path $filePath -PathType Leaf) -and (Test-Path "$filePath.html" -PathType Leaf)) {
+                $filePath = "$filePath.html"
+            }
+
             if (Test-Path $filePath -PathType Leaf) {
                 $bytes = [System.IO.File]::ReadAllBytes($filePath)
                 $ext = [System.IO.Path]::GetExtension($filePath).ToLower()

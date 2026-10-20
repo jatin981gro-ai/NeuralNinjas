@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Desk-OS — point. speak. automate.</title>
+  <title>Desk-OS - point. speak. automate.</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23fff' stroke-width='6'/><text x='50' y='62' font-family='monospace' font-size='32' font-weight='bold' fill='%23fff' text-anchor='middle'>D</text></svg>">
   
   <!-- MediaPipe Hands: Local high-speed script with fast CDN fallback -->
   <script src="hands.js" onerror="this.onerror=null; this.src='https://unpkg.com/@mediapipe/hands/hands.js'"></script>
+
+  <!-- Google Fonts: Space Grotesk (Headings) + IBM Plex Sans (Body) with font-display: swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* ==========================================================================
@@ -15,14 +20,18 @@
        Strict Color System: Pure Black, Pure White, True Neutral Grays only
        ========================================================================== */
     :root {
-      /* Approved Color Palette: Only Pure Black, Pure White, and True Neutral Grays */
+      /* Approved Color Palette: Pure Black, Pure White, True Neutral Grays, and Orange Accent */
       --color-black: #000000;
       --color-white: #FFFFFF;
       --color-gray-dark: #333333;
       --color-gray-mid: #999999;
       --color-gray-light: #E5E5E5;
 
-      /* Semantic Tokens */
+      /* Small Accent Color (Strictly for small CTA buttons & active/live-state indicators) */
+      --color-accent: #D9480F;
+      --color-accent-hover: #BF3F0D;
+
+      /* Semantic Base Tokens */
       --color-bg: #FFFFFF;
       --color-fg: #000000;
       --color-muted: #999999;
@@ -32,6 +41,31 @@
       --color-dark-fg: #FFFFFF;
       --color-dark-muted: #999999;
       --color-dark-border: #333333;
+
+      /* Adaptive Theme Tokens (Light Mode Default) */
+      --theme-deck-bg: #FFFFFF;
+      --theme-deck-fg: #000000;
+      --theme-deck-border: #000000;
+
+      --theme-card-bg: #FFFFFF;
+      --theme-card-fg: #000000;
+      --theme-card-border: #000000;
+      --theme-card-sub: #333333;
+      --theme-card-muted: #666666;
+
+      --theme-node-bg: #FFFFFF;
+      --theme-node-fg: #000000;
+      --theme-node-border: #000000;
+
+      --theme-controls-bg: #FFFFFF;
+      --theme-controls-fg: #000000;
+      --theme-controls-border: #000000;
+
+      --theme-demo-bg: #FFFFFF;
+      --theme-demo-fg: #000000;
+      --theme-demo-border: #000000;
+
+      --theme-focus-outline: #000000;
 
       /* Spatial 8px Scale */
       --space-1: 8px;
@@ -45,28 +79,165 @@
       --radius-md: 4px;
       --radius-lg: 4px;
 
-      /* Modular Typography */
+      /* Distinctive Spatial Computing Typography System */
+      --font-heading: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+      --font-sans: var(--font-body);
+
+      /* Fluid Modular Type Scale (1.25 Major Third with Fluid clamp()) */
+      --text-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem); /* ~12px - 13px (fine labels, badges) */
+      --text-sm: clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem); /* ~14px - 15px (controls, UI copy) */
+      --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.1rem);       /* 16px - 17.6px (base body copy) */
+      --text-lg: clamp(1.25rem, 1.15rem + 0.5vw, 1.35rem);     /* ~20px - 21.6px (h4 / subheadings) */
+      --text-xl: clamp(1.5625rem, 1.42rem + 0.7vw, 1.75rem);   /* ~25px - 28px (h3 / card titles) */
+      --text-2xl: clamp(1.953rem, 1.75rem + 1vw, 2.25rem);     /* ~31.25px - 36px (h2 / section headers) */
+      --text-3xl: clamp(2.441rem, 2.15rem + 1.45vw, 2.85rem);  /* ~39px - 45.6px (h1 / display) */
+
+      /* Line heights */
+      --leading-tight: 1.15;
+      --leading-snug: 1.3;
+      --leading-normal: 1.55;
+
+      /* Letter spacing */
+      --tracking-tight: -0.02em;
+      --tracking-normal: 0em;
+      --tracking-wide: 0.05em;
+      --tracking-wider: 0.1em;
+    }
+
+    /* ==========================================================================
+       DARK MODE THEME INVERSION ([data-theme="dark"])
+       Full high-contrast inversion while maintaining strict monochrome base and
+       the exact orange accent #D9480F (WCAG AA compliant contrast in both themes).
+       ========================================================================== */
+    [data-theme="dark"] {
+      --theme-deck-bg: #000000;
+      --theme-deck-fg: #FFFFFF;
+      --theme-deck-border: #333333;
+
+      --theme-card-bg: #0A0A0A;
+      --theme-card-fg: #FFFFFF;
+      --theme-card-border: #333333;
+      --theme-card-sub: #CCCCCC;
+      --theme-card-muted: #999999;
+
+      --theme-node-bg: #111111;
+      --theme-node-fg: #FFFFFF;
+      --theme-node-border: #333333;
+
+      --theme-controls-bg: #0A0A0A;
+      --theme-controls-fg: #FFFFFF;
+      --theme-controls-border: #333333;
+
+      --theme-demo-bg: #000000;
+      --theme-demo-fg: #FFFFFF;
+      --theme-demo-border: #333333;
+
+      --theme-focus-outline: #FFFFFF;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
     }
 
     html, body {
       background-color: var(--color-dark-bg);
       color: var(--color-dark-fg);
-      font-family: var(--font-sans);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      font-weight: 400;
+      line-height: var(--leading-normal);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Headings & Brand Wordmarks: Space Grotesk (Google Fonts) */
+    h1, h2, h3, h4, h5, h6,
+    .heading-display,
+    .brand-wordmark,
+    .demo-heading,
+    .panel-title,
+    .settings-title,
+    .footer-wordmark {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+    }
+
+    /* Interactive controls inherit font system cleanly */
+    input,
+    button,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+    p {
+      line-height: var(--leading-normal);
+    }
+
+    /* ==========================================================================
+       ACCESSIBILITY & SCREEN READER UTILITIES
+       ========================================================================== */
+    .skip-to-content {
+      position: absolute;
+      top: -120px;
+      left: var(--space-2);
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 2px solid var(--color-white);
+      padding: 8px 16px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 10000;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: top 0.15s ease;
+    }
+
+    .skip-to-content:focus {
+      top: var(--space-2);
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* WCAG AA Visible Keyboard Focus Ring */
+    :focus-visible {
+      outline: 2px solid var(--theme-focus-outline);
+      outline-offset: 2px;
+    }
+
+    .btn:focus-visible,
+    .timer-btn:focus-visible,
+    .feed-mode-btn:focus-visible,
+    .chip-btn:focus-visible,
+    .mic-button:focus-visible,
+    .btn-fire:focus-visible,
+    .btn-delete:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
     }
 
     /* ==========================================================================
@@ -76,34 +247,72 @@
       background: var(--color-dark-bg);
       color: var(--color-dark-fg);
       border-bottom: 1px solid var(--color-dark-border);
-      padding: var(--space-2) var(--space-4);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      transition: border-bottom-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    header.header-scrolled {
+      border-bottom-color: var(--color-gray-dark);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+
+    [data-theme="dark"] header.header-scrolled {
+      border-bottom-color: #444444;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85);
+    }
+
+    .header-masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px var(--space-4);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: var(--space-2);
+      width: 100%;
+      position: relative;
+    }
+
+    [data-theme="dark"] .header-masthead {
+      border-bottom-color: #222222;
     }
 
     .brand-group {
       display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
-    }
-
-    .brand-title {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--color-white);
-      display: flex;
       align-items: center;
-      gap: var(--space-1);
-      text-transform: uppercase;
+      gap: var(--space-2);
+      flex-shrink: 0;
     }
 
-    .brand-title span.badge-pill {
-      font-size: 10px;
+    .brand-wordmark {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+      color: var(--color-white);
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      line-height: var(--leading-tight);
+      font-family: var(--font-heading);
+    }
+
+    .brand-wordmark:hover {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .brand-wordmark:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 2px;
+    }
+
+    .badge-pill {
+      font-size: var(--text-xs);
       font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -111,15 +320,110 @@
       background: var(--color-white);
       color: var(--color-black);
       border-radius: var(--radius-sm);
+      display: inline-block;
+      font-family: var(--font-mono);
     }
 
     .brand-tagline {
-      font-size: 12px;
+      font-size: var(--text-xs);
       font-weight: 500;
       color: var(--color-dark-muted);
       letter-spacing: 0.5px;
       text-transform: uppercase;
       font-family: var(--font-mono);
+      display: inline-block;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .site-nav-link {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-dark-muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .site-nav-link:hover {
+      color: var(--color-white);
+      border-color: rgba(255, 255, 255, 0.2);
+      background-color: rgba(255, 255, 255, 0.05);
+      text-decoration: none;
+    }
+
+    .site-nav-link:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 2px;
+    }
+
+    .header-right-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      flex-shrink: 0;
+    }
+
+    .nav-cta-btn {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      padding: 6px 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      height: 32px;
+    }
+
+    .nav-cta-btn:hover {
+      text-decoration: none;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--color-dark-border);
+      color: var(--color-white);
+      padding: 6px 10px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .mobile-menu-btn:hover {
+      border-color: var(--color-white);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-menu-btn:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 2px;
+    }
+
+    .header-utility-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px var(--space-4);
+      background: rgba(0, 0, 0, 0.4);
+      gap: var(--space-2);
+      width: 100%;
+      flex-wrap: wrap;
     }
 
     .header-status-strip {
@@ -132,7 +436,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-1);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 600;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -153,8 +457,9 @@
     }
 
     .status-dot.active {
-      background: var(--color-white);
-      border-color: var(--color-white);
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 6px rgba(217, 72, 15, 0.45);
     }
 
     .status-dot.warn {
@@ -178,7 +483,7 @@
       border: 1px solid var(--color-dark-border);
       border-radius: var(--radius-sm);
       padding: var(--space-1) var(--space-2);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -197,18 +502,18 @@
       border-color: var(--color-white);
     }
 
-    /* Primary CTA in dark masthead */
+    /* Primary CTA Buttons (Strictly Orange Accent #D9480F) */
     .btn-primary {
-      background: var(--color-white);
-      color: var(--color-black);
-      border: 1px solid var(--color-white);
+      background: var(--color-accent);
+      color: var(--color-white);
+      border: 1px solid var(--color-accent);
       font-weight: 800;
     }
 
     .btn-primary:hover {
-      background: var(--color-black);
+      background: var(--color-accent-hover);
       color: var(--color-white);
-      border-color: var(--color-white);
+      border-color: var(--color-accent-hover);
     }
 
     .btn-demo-mode {
@@ -228,7 +533,7 @@
     .btn-icon {
       padding: var(--space-1) var(--space-2);
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: var(--text-xs);
     }
 
     /* DIAGNOSTIC MONITOR STRIP */
@@ -236,7 +541,7 @@
       background: var(--color-dark-bg);
       border-bottom: 1px solid var(--color-dark-border);
       padding: 6px var(--space-4);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-family: var(--font-mono);
       display: flex;
       align-items: center;
@@ -268,17 +573,17 @@
     }
 
     /* ==========================================================================
-       2. MIDDLE LIGHT SECTION: WORKSPACE DECK (WHITE #FFFFFF)
+       2. MIDDLE SECTION: WORKSPACE DECK (ADAPTIVE THEME)
        ========================================================================== */
     .workspace-deck {
-      background-color: var(--color-white);
-      color: var(--color-black);
+      background-color: var(--theme-deck-bg);
+      color: var(--theme-deck-fg);
       flex: 1;
       width: 100%;
       display: flex;
       flex-direction: column;
-      border-top: 2px solid var(--color-black);
-      border-bottom: 2px solid var(--color-black);
+      border-top: 2px solid var(--theme-deck-border);
+      border-bottom: 2px solid var(--theme-deck-border);
     }
 
     main {
@@ -290,7 +595,7 @@
       max-width: 1680px;
       margin: 0 auto;
       width: 100%;
-      background: var(--color-white);
+      background: var(--theme-deck-bg);
     }
 
     @media (max-width: 1100px) {
@@ -368,7 +673,7 @@
       border: 1px solid var(--color-white);
       padding: 4px 10px;
       border-radius: var(--radius-sm);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -380,16 +685,25 @@
     }
 
     .hud-pill.highlight {
-      background: var(--color-white);
-      color: var(--color-black);
-      border: 1px solid var(--color-white);
+      background: var(--color-black);
+      color: var(--color-white);
+      border: 1px solid var(--color-accent);
+    }
+
+    .hud-pill.highlight::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent);
+      border-radius: 1px;
     }
 
     #activeNodesBadge {
       display: none;
     }
 
-    /* PEN FOCUS TIMER WIDGET (STRONG MONOCHROME INVERSION) */
+    /* PEN FOCUS TIMER WIDGET (STRONG MONOCHROME WITH ORANGE RUNNING ACCENT) */
     .pen-timer-widget {
       position: absolute;
       top: var(--space-2);
@@ -406,8 +720,8 @@
     }
 
     .pen-timer-widget.running {
-      border: 2px solid var(--color-white);
-      outline: 2px solid var(--color-black);
+      border: 2px solid var(--color-accent);
+      outline: 2px solid rgba(217, 72, 15, 0.25);
     }
 
     .pen-timer-widget.paused {
@@ -422,7 +736,7 @@
     }
 
     .timer-title {
-      font-size: 10px;
+      font-size: var(--text-xs);
       font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -431,7 +745,7 @@
     }
 
     .timer-status-badge {
-      font-size: 9px;
+      font-size: var(--text-xs);
       font-weight: 800;
       padding: 2px 6px;
       border-radius: var(--radius-sm);
@@ -441,9 +755,9 @@
     }
 
     .timer-status-badge.running {
-      background: var(--color-white);
-      color: var(--color-black);
-      border: 1px solid var(--color-white);
+      background: var(--color-black);
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
     }
 
     .timer-status-badge.paused {
@@ -459,7 +773,7 @@
     }
 
     .timer-display {
-      font-size: 32px;
+      font-size: var(--text-3xl);
       font-weight: 800;
       font-family: var(--font-mono);
       letter-spacing: 2px;
@@ -481,7 +795,7 @@
       border: 1px solid var(--color-white);
       border-radius: var(--radius-sm);
       padding: 4px 10px;
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -506,7 +820,7 @@
       border: 2px solid var(--color-white);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-sm);
-      font-size: 13px;
+      font-size: var(--text-sm);
       font-weight: 800;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -532,7 +846,7 @@
       border: 1px solid var(--color-white);
       padding: var(--space-1) var(--space-2);
       border-radius: var(--radius-sm);
-      font-size: 12px;
+      font-size: var(--text-sm);
       font-weight: 700;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -542,33 +856,33 @@
       pointer-events: none;
     }
 
-    /* CONTROLS BAR UNDER VIDEO (WHITE DECK SECTION) */
+    /* CONTROLS BAR UNDER VIDEO (ADAPTIVE THEME) */
     .viewport-controls-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--color-white);
+      background: var(--theme-controls-bg);
       padding: var(--space-2);
       border-radius: var(--radius-md);
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-controls-border);
       gap: var(--space-2);
     }
 
     .feed-mode-switch {
       display: flex;
-      background: var(--color-white);
+      background: var(--theme-controls-bg);
       padding: 2px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-controls-border);
       gap: 2px;
     }
 
     .feed-mode-btn {
       background: transparent;
       border: none;
-      color: var(--color-black);
+      color: var(--theme-controls-fg);
       padding: 6px 12px;
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -579,28 +893,29 @@
     }
 
     .feed-mode-btn.active {
-      background: var(--color-black);
-      color: var(--color-white);
+      background: var(--theme-deck-fg);
+      color: var(--theme-deck-bg);
+      border-bottom: 2px solid var(--color-accent);
     }
 
     .sensitivity-control {
       display: flex;
       align-items: center;
       gap: var(--space-1);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       text-transform: uppercase;
       font-family: var(--font-mono);
-      color: var(--color-black);
+      color: var(--theme-controls-fg);
     }
 
     .sensitivity-control input[type="range"] {
-      accent-color: var(--color-black);
+      accent-color: var(--color-accent);
       width: 100px;
       cursor: pointer;
     }
 
-    /* RIGHT COLUMN: RULE NODES & ACTIVITY STREAM (WHITE DECK) */
+    /* RIGHT COLUMN: RULE NODES & ACTIVITY STREAM */
     .panel-column {
       display: flex;
       flex-direction: column;
@@ -609,9 +924,9 @@
     }
 
     .panel-card {
-      background: var(--color-white);
+      background: var(--theme-card-bg);
       border-radius: var(--radius-md);
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-card-border);
       padding: var(--space-3);
       display: flex;
       flex-direction: column;
@@ -622,23 +937,24 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--color-gray-light);
+      border-bottom: 1px solid var(--theme-card-border);
       padding-bottom: var(--space-1);
     }
 
     .panel-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--color-black);
-      letter-spacing: -0.3px;
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--theme-card-fg);
+      letter-spacing: var(--tracking-tight);
       text-transform: uppercase;
       display: flex;
       align-items: center;
       gap: var(--space-1);
+      font-family: var(--font-heading);
     }
 
     .panel-count {
-      font-size: 10px;
+      font-size: var(--text-xs);
       font-weight: 800;
       padding: 2px 6px;
       background: var(--color-black);
@@ -685,15 +1001,16 @@
     }
 
     .reg-meta-title {
-      font-size: 14px;
-      font-weight: 800;
+      font-size: var(--text-base);
+      font-weight: 700;
       color: var(--color-white);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: var(--tracking-tight);
+      font-family: var(--font-heading);
     }
 
     .reg-meta-sub {
-      font-size: 11px;
+      font-size: var(--text-xs);
       color: var(--color-gray-mid);
       font-family: var(--font-mono);
       display: flex;
@@ -722,7 +1039,7 @@
       border: 1px solid var(--color-white);
       border-radius: var(--radius-sm);
       color: var(--color-white);
-      font-size: 13px;
+      font-size: var(--text-sm);
       font-family: var(--font-mono);
       padding: 10px 12px;
       outline: none;
@@ -738,7 +1055,7 @@
       border-radius: var(--radius-sm);
       color: var(--color-white);
       padding: 0 var(--space-2);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 800;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -767,7 +1084,7 @@
       border: 1px solid var(--color-dark-border);
       border-radius: var(--radius-sm);
       color: var(--color-gray-mid);
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 600;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -809,8 +1126,8 @@
     }
 
     .node-card {
-      background: var(--color-white);
-      border: 1px solid var(--color-black);
+      background: var(--theme-node-bg);
+      border: 1px solid var(--theme-node-border);
       border-radius: var(--radius-sm);
       padding: var(--space-2);
       display: flex;
@@ -820,14 +1137,15 @@
     }
 
     .node-card:hover {
-      background: var(--color-white);
+      background: var(--theme-node-bg);
       border-width: 2px;
     }
 
     .node-card.fired {
       background: var(--color-black);
       color: var(--color-white);
-      border-color: var(--color-black);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 10px rgba(217, 72, 15, 0.35);
     }
 
     .node-card.fired .node-title,
@@ -836,12 +1154,16 @@
       color: var(--color-white);
     }
 
+    .node-card.fired .node-title {
+      color: var(--color-accent);
+    }
+
     .node-thumb {
       width: 40px;
       height: 40px;
       border-radius: var(--radius-sm);
       overflow: hidden;
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-node-border);
       background: var(--color-black);
       flex-shrink: 0;
     }
@@ -866,43 +1188,44 @@
     }
 
     .node-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--color-black);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--theme-node-fg);
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: var(--tracking-tight);
+      font-family: var(--font-heading);
     }
 
     .badge-trigger {
-      font-size: 9px;
+      font-size: var(--text-xs);
       font-weight: 800;
       padding: 1px 5px;
       border-radius: var(--radius-sm);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       font-family: var(--font-mono);
-      background: var(--color-black);
-      color: var(--color-white);
-      border: 1px solid var(--color-black);
+      background: var(--theme-deck-fg);
+      color: var(--theme-deck-bg);
+      border: 1px solid var(--theme-deck-fg);
     }
 
     .badge-trigger.move,
     .badge-trigger.touch,
     .badge-trigger.remove {
-      background: var(--color-black);
-      color: var(--color-white);
-      border: 1px solid var(--color-black);
+      background: var(--theme-deck-fg);
+      color: var(--theme-deck-bg);
+      border: 1px solid var(--theme-deck-fg);
     }
 
     .node-action-desc {
-      font-size: 12px;
-      color: var(--color-gray-dark);
+      font-size: var(--text-xs);
+      color: var(--theme-card-muted);
       font-family: var(--font-mono);
     }
 
     .node-stats {
-      font-size: 10px;
-      color: var(--color-gray-mid);
+      font-size: var(--text-xs);
+      color: var(--theme-card-sub);
       font-family: var(--font-mono);
     }
 
@@ -915,30 +1238,31 @@
     .btn-fire {
       background: var(--color-black);
       color: var(--color-white);
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-node-border);
       padding: 5px 10px;
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 800;
       letter-spacing: 0.5px;
       font-family: var(--font-mono);
       text-transform: uppercase;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
     .btn-fire:hover {
-      background: var(--color-white);
-      color: var(--color-black);
+      background: var(--color-accent);
+      color: var(--color-white);
+      border-color: var(--color-accent);
     }
 
     .btn-delete {
       background: transparent;
-      border: 1px solid var(--color-black);
-      color: var(--color-black);
+      border: 1px solid var(--theme-card-fg);
+      color: var(--theme-card-fg);
       cursor: pointer;
       padding: 4px 8px;
-      font-size: 10px;
+      font-size: var(--text-xs);
       font-weight: 700;
       font-family: var(--font-mono);
       text-transform: uppercase;
@@ -947,15 +1271,15 @@
     }
 
     .btn-delete:hover {
-      background: var(--color-black);
-      color: var(--color-white);
+      background: var(--theme-card-fg);
+      color: var(--theme-card-bg);
     }
 
     /* ACTIVITY LOG / EVENT STREAM */
     .activity-section {
-      background: var(--color-white);
+      background: var(--theme-card-bg);
       border-radius: var(--radius-md);
-      border: 1px solid var(--color-black);
+      border: 1px solid var(--theme-card-border);
       padding: var(--space-3);
       display: flex;
       flex-direction: column;
@@ -970,32 +1294,36 @@
       overflow-y: auto;
       max-height: 180px;
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: var(--text-xs);
     }
 
     .log-entry {
       padding: 6px var(--space-1);
       border-radius: var(--radius-sm);
-      background: var(--color-white);
+      background: var(--theme-card-bg);
       border-left: 2px solid var(--color-gray-light);
-      color: var(--color-gray-dark);
+      color: var(--theme-card-muted);
       display: flex;
       align-items: center;
       gap: var(--space-1);
     }
 
+    [data-theme="dark"] .log-entry {
+      border-left: 2px solid #222222;
+    }
+
     .log-entry.trigger {
-      border-left: 3px solid var(--color-black);
-      color: var(--color-black);
+      border-left: 3px solid var(--color-accent);
+      color: var(--theme-card-fg);
       font-weight: 700;
     }
 
     .log-time {
-      color: var(--color-gray-mid);
-      font-size: 10px;
+      color: var(--theme-card-sub);
+      font-size: var(--text-xs);
     }
 
-    /* TOASTS (INVERTED HIGH-CONTRAST BLACK CARDS) */
+    /* TOASTS (INVERTED HIGH-CONTRAST BLACK CARDS WITH ORANGE ACCENT INDICATOR) */
     #toastContainer {
       position: fixed;
       top: 80px;
@@ -1010,6 +1338,7 @@
     .toast {
       background: var(--color-black);
       border: 2px solid var(--color-white);
+      border-left: 4px solid var(--color-accent);
       border-radius: var(--radius-sm);
       padding: var(--space-2) var(--space-3);
       color: var(--color-white);
@@ -1033,7 +1362,7 @@
     }
 
     .toast-title {
-      font-size: 12px;
+      font-size: var(--text-xs);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -1041,7 +1370,7 @@
     }
 
     .toast-msg {
-      font-size: 11px;
+      font-size: var(--text-xs);
       color: var(--color-gray-mid);
     }
 
@@ -1071,16 +1400,18 @@
     }
 
     .settings-title {
-      font-size: 16px;
-      font-weight: 800;
+      font-size: var(--text-base);
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: var(--tracking-tight);
+      font-family: var(--font-heading);
     }
 
     .settings-desc {
-      font-size: 12px;
+      font-size: var(--text-sm);
       color: var(--color-gray-mid);
-      line-height: 1.5;
+      line-height: var(--leading-normal);
+      font-family: var(--font-body);
     }
 
     /* ==========================================================================
@@ -1090,16 +1421,105 @@
       background: var(--color-dark-bg);
       color: var(--color-dark-fg);
       border-top: 2px solid var(--color-dark-border);
-      padding: var(--space-3) var(--space-4);
+      padding: var(--space-4) var(--space-4) var(--space-3) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .footer-main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .footer-main-grid {
+      border-bottom: 1px solid #222222;
+    }
+
+    .footer-brand-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-wordmark {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-white);
+      letter-spacing: var(--tracking-tight);
+      text-transform: uppercase;
+      font-family: var(--font-heading);
+    }
+
+    .footer-tagline {
+      font-size: var(--text-xs);
+      color: var(--color-dark-muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .footer-subdesc {
+      font-size: var(--text-sm);
+      color: var(--color-gray-mid);
+      line-height: var(--leading-normal);
+      text-transform: none;
+      max-width: 440px;
+      font-family: var(--font-body);
+    }
+
+    .footer-col-heading {
+      font-size: var(--text-xs);
+      font-weight: 800;
+      color: var(--color-white);
+      letter-spacing: 1px;
+      margin-bottom: var(--space-2);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--color-dark-border);
+    }
+
+    .footer-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-link {
+      color: var(--color-dark-muted);
+      text-decoration: none;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: color 0.15s ease;
+      display: inline-block;
+    }
+
+    .footer-link:hover {
+      color: var(--color-white);
+      text-decoration: underline;
+    }
+
+    .footer-link:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 2px;
+    }
+
+    .footer-telemetry-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: var(--space-2);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .footer-spec {
@@ -1127,48 +1547,429 @@
       align-items: center;
       gap: 6px;
     }
+
+    .footer-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      color: var(--color-dark-muted);
+      font-size: var(--text-xs);
+    }
+
+    .footer-copyright {
+      color: var(--color-dark-muted);
+    }
+
+    .footer-local-badge {
+      font-weight: 700;
+      color: var(--color-gray-mid);
+      letter-spacing: 1px;
+    }
+
+    /* ==========================================================================
+       4. LIVE DEMO SHOWCASE SECTION (RECORDING / GIF WALKTHROUGH)
+       ========================================================================== */
+    .demo-showcase-section {
+      background: var(--theme-demo-bg);
+      color: var(--theme-demo-fg);
+      border-top: 2px solid var(--theme-demo-border);
+      padding: var(--space-4);
+      width: 100%;
+    }
+
+    .demo-showcase-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .demo-showcase-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--theme-card-border);
+      padding-bottom: var(--space-2);
+    }
+
+    .demo-title-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .demo-badge {
+      font-size: var(--text-xs);
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      background: var(--theme-deck-fg);
+      color: var(--theme-deck-bg);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .demo-heading {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-tight);
+      color: var(--theme-deck-fg);
+      font-family: var(--font-heading);
+      line-height: var(--leading-tight);
+    }
+
+    .demo-caption {
+      font-size: var(--text-sm);
+      font-family: var(--font-mono);
+      color: var(--theme-card-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .demo-media-wrapper {
+      position: relative;
+      background: var(--color-black);
+      border: 2px solid var(--theme-card-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .demo-video-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-4);
+      background: #000000;
+      color: #FFFFFF;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+    }
+
+    .demo-fallback-badge {
+      font-size: var(--text-xs);
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .demo-fallback-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-tight);
+      color: #FFFFFF;
+      font-family: var(--font-heading);
+    }
+
+    .demo-fallback-title code {
+      color: var(--color-accent);
+      background: #111111;
+      padding: 2px 6px;
+      border: 1px solid #333333;
+      border-radius: var(--radius-sm);
+      font-size: var(--text-base);
+    }
+
+    .demo-fallback-desc {
+      font-size: var(--text-sm);
+      color: #999999;
+      max-width: 680px;
+      line-height: var(--leading-normal);
+      text-transform: none;
+      font-family: var(--font-body);
+    }
+
+    .demo-fallback-steps {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: var(--space-2);
+    }
+
+    .fallback-step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111111;
+      border: 1px solid #333333;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .fallback-step-item .step-num {
+      color: var(--color-accent);
+      font-weight: 800;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE BREAKPOINTS (TABLET & MOBILE)
+       ========================================================================== */
+    @media (max-width: 1100px) {
+      .demo-showcase-section {
+        padding: var(--space-3) var(--space-2);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+
+      .site-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--color-black);
+        border-bottom: 2px solid var(--color-dark-border);
+        flex-direction: column;
+        padding: var(--space-2) var(--space-4);
+        gap: var(--space-1);
+        z-index: 101;
+      }
+
+      .site-nav.is-open {
+        display: flex;
+      }
+
+      .site-nav-link {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        width: 100%;
+      }
+
+      .header-masthead {
+        padding: 8px var(--space-2);
+        gap: var(--space-1);
+      }
+
+      .brand-group {
+        gap: 6px;
+      }
+
+      .brand-tagline {
+        display: none;
+      }
+
+      .brand-group .badge-pill {
+        display: none;
+      }
+
+      .header-utility-strip {
+        padding: 6px var(--space-2);
+        gap: 6px;
+      }
+
+      .header-status-strip {
+        flex-wrap: wrap;
+        gap: 4px;
+        width: 100%;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        font-size: var(--text-xs);
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+      }
+
+      .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 4px;
+      }
+
+      .header-actions .btn {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        padding: 4px 6px;
+        font-size: var(--text-xs);
+      }
+
+      .footer-main-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .btn {
+        flex: 1 1 auto;
+        min-height: 36px;
+      }
+
+      .viewport-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .feed-mode-switch {
+        width: 100%;
+      }
+
+      .feed-mode-btn {
+        flex: 1;
+        text-align: center;
+        min-height: 38px;
+      }
+
+      footer.editorial-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--space-2);
+      }
+
+      .footer-legend {
+        flex-wrap: wrap;
+        gap: var(--space-1);
+      }
+
+      .footer-telemetry-row,
+      .footer-bottom-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-masthead {
+        padding: 6px var(--space-2);
+      }
+
+      .brand-wordmark {
+        font-size: var(--text-base);
+      }
+
+      .nav-cta-btn {
+        padding: 6px 10px;
+        font-size: var(--text-xs);
+        letter-spacing: 0.5px;
+      }
+
+      #themeToggleBtn {
+        padding: 6px 8px;
+      }
+
+      #themeToggleLabel {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
+  <a href="#mainContent" class="skip-to-content">Skip to content</a>
+  <div id="a11yLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
   <!-- ========================================================================
-       TOP PRESENTATION HEADER
+       TOP PRESENTATION HEADER (STICKY BANNER)
        ======================================================================== -->
-  <header>
-    <div class="brand-group">
-      <div class="brand-title">
-        Desk-OS
+  <header role="banner" id="siteHeader">
+    <!-- Top Row: Editorial Brand Masthead & Site Navigation -->
+    <div class="header-masthead">
+      <div class="brand-group">
+        <a href="#mainContent" class="brand-wordmark" aria-label="Desk-OS Home">Desk-OS</a>
         <span class="badge-pill">Tangible Bridge</span>
+        <span class="brand-tagline">point. speak. automate.</span>
       </div>
-      <div class="brand-tagline">point. speak. automate.</div>
+
+      <!-- In-Page Navigation Links (Single-Page Site Navigation) -->
+      <nav class="site-nav" id="siteNav" aria-label="Site navigation">
+        <a href="#mainContent" class="site-nav-link">Home</a>
+        <a href="#howItWorks" class="site-nav-link">How It Works</a>
+        <a href="#features" class="site-nav-link">Features</a>
+        <a href="#liveDemoSection" class="site-nav-link">Demo</a>
+      </nav>
+
+      <!-- Right Action Group: Theme Toggle & Primary Solid-Orange CTA -->
+      <div class="header-right-group">
+        <button class="btn btn-icon theme-btn" id="themeToggleBtn" aria-label="Toggle dark mode theme" title="Toggle Theme (Dark / Light)">
+          <svg id="themeToggleIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span id="themeToggleLabel">DARK</span>
+        </button>
+
+        <a href="#liveDemoSection" class="btn btn-primary nav-cta-btn" aria-label="Watch tangible bridge demo">
+          WATCH DEMO
+        </a>
+
+        <!-- Mobile Menu Toggle Button (Clean SVG vector icon, zero emojis) -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="siteNav">
+          <svg id="mobileMenuIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Live Status Indicators -->
-    <div class="header-status-strip">
-      <div class="status-badge" id="cameraStatusPill">
-        <div class="status-dot warn" id="cameraStatusDot"></div>
-        <span id="cameraStatusText">Camera: Initializing</span>
+    <!-- Secondary Row: Hardware & Application Controls Strip -->
+    <div class="header-utility-strip">
+      <div class="header-status-strip">
+        <div class="status-badge" id="cameraStatusPill">
+          <div class="status-dot warn" id="cameraStatusDot"></div>
+          <span id="cameraStatusText">Camera: Initializing</span>
+        </div>
+        <div class="status-badge" id="handsStatusPill">
+          <div class="status-dot warn" id="handsStatusDot"></div>
+          <span id="handsStatusText">Hands: Standby</span>
+        </div>
       </div>
-      <div class="status-badge" id="handsStatusPill">
-        <div class="status-dot warn" id="handsStatusDot"></div>
-        <span id="handsStatusText">Hands: Standby</span>
-      </div>
-    </div>
 
-    <!-- Header Actions -->
-    <div class="header-actions">
-      <button class="btn btn-demo-mode" id="demoModeBtn" title="Pre-wire two sample objects (safe backup for stage lighting)">
-        DEMO MODE
-      </button>
-      <button class="btn" id="resetDemoBtn" title="Reset all objects and state for the next judge">
-        RESET DEMO
-      </button>
-      <button class="btn btn-icon" id="sfxToggleBtn" title="Toggle Synthesized Audio Chimes">
-        AUDIO
-      </button>
-      <button class="btn btn-icon" id="settingsBtn" title="Configure Gemini API Key">
-        CONFIG
-      </button>
+      <!-- Header Actions -->
+      <nav class="header-actions" aria-label="Global application controls">
+        <button class="btn btn-demo-mode" id="demoModeBtn" aria-label="Toggle Demo Mode: Pre-wire sample objects" title="Pre-wire two sample objects (safe backup for stage lighting)">
+          DEMO MODE
+        </button>
+        <button class="btn" id="resetDemoBtn" aria-label="Reset workspace demo state" title="Reset all objects and state for the next judge">
+          RESET DEMO
+        </button>
+        <button class="btn btn-icon" id="voiceAnnounceToggleBtn" aria-label="Enable spoken voice announcements" title="Toggle Spoken Voice Feedback (SpeechSynthesis)">
+          <span id="voiceAnnounceLabel">VOICE: OFF</span>
+        </button>
+        <button class="btn btn-icon" id="sfxToggleBtn" aria-label="Toggle synthesized audio effects" title="Toggle Synthesized Audio Chimes">
+          AUDIO
+        </button>
+        <button class="btn btn-icon" id="settingsBtn" aria-label="Configure system settings" title="Configure Gemini API Key">
+          CONFIG
+        </button>
+      </nav>
     </div>
   </header>
 
@@ -1178,7 +1979,7 @@
       <span class="debug-dot" id="debugDot"></span>
       <span id="debugStatusLine">System: Initializing hardware & vision pipeline...</span>
     </div>
-    <div id="debugServerTip" style="font-size: 11px; opacity: 0.85;">
+    <div id="debugServerTip" style="font-size: var(--text-xs); opacity: 0.85;">
       TIP: OPEN VIA HTTP://LOCALHOST:8000 FOR FULL WEBCAM SECURE CONTEXT
     </div>
   </div>
@@ -1187,10 +1988,10 @@
        MIDDLE LIGHT SECTION: WORKSPACE DECK (WHITE #FFFFFF)
        ======================================================================== -->
   <div class="workspace-deck">
-    <main>
+    <main id="mainContent" role="main" tabindex="-1">
       
       <!-- LEFT COLUMN: AR WEBCAM / VIRTUAL DESK VIEWPORT -->
-      <section class="viewport-column">
+      <section class="viewport-column" id="howItWorks" aria-label="Interactive Desk Viewport and Gesture Tracking">
         <div class="feed-wrapper" id="feedContainer">
           <!-- Live Video Element -->
           <video id="webcamVideo" playsinline autoplay muted></video>
@@ -1222,33 +2023,33 @@
             </div>
             <div class="timer-display" id="timerDisplay">00:00.0</div>
             <div class="timer-controls">
-              <button class="timer-btn" id="timerResetBtn" title="Reset Stopwatch">RESET</button>
-              <button class="timer-btn" id="timerToggleBtn" title="Manual Toggle">START</button>
+              <button class="timer-btn" id="timerResetBtn" aria-label="Reset focus timer" title="Reset Stopwatch">RESET</button>
+              <button class="timer-btn" id="timerToggleBtn" aria-label="Start or pause focus timer" title="Manual Toggle">START</button>
             </div>
           </div>
 
           <!-- Camera Error / Permission Denied Modal Overlay -->
           <div class="camera-error-overlay" id="cameraErrorOverlay" style="display: none;">
             <div class="camera-error-modal">
-              <div style="font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; color: var(--color-white); border-bottom: 1px solid var(--color-gray-dark); padding-bottom: 4px;">[ CAMERA HARDWARE ERROR ]</div>
-              <div style="font-weight: 800; font-size: 16px; margin-bottom: 6px; color: var(--color-white); text-transform: uppercase;">Camera Access Unavailable</div>
-              <div id="cameraErrorReason" style="font-size: 12px; color: var(--color-gray-mid); margin-bottom: 12px; font-family: var(--font-mono);">
+              <div style="font-size: var(--text-xs); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; color: var(--color-white); border-bottom: 1px solid var(--color-gray-dark); padding-bottom: 4px;">[ CAMERA HARDWARE ERROR ]</div>
+              <div style="font-family: var(--font-heading); font-weight: 700; font-size: var(--text-lg); margin-bottom: 6px; color: var(--color-white); text-transform: uppercase; letter-spacing: var(--tracking-tight);">Camera Access Unavailable</div>
+              <div id="cameraErrorReason" style="font-size: var(--text-sm); color: var(--color-gray-mid); margin-bottom: 12px; font-family: var(--font-mono);">
                 Permission denied by user / browser
               </div>
-              <p style="font-size: 12px; color: var(--color-gray-mid); line-height: 1.5; margin-bottom: 20px;">
+              <p style="font-size: var(--text-sm); color: var(--color-gray-mid); line-height: var(--leading-normal); margin-bottom: 20px;">
                 Desk-OS requires camera access for real physical desk & pen tracking.<br>
                 Click the camera icon in your browser address bar to <b>Allow</b> access, then retry.
               </p>
               <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" id="retryWebcamBtn">RETRY CAMERA ACCESS</button>
-                <button class="btn" id="dismissFallbackBtn" style="font-size: 11px;">USE VIRTUAL FALLBACK</button>
+                <button class="btn btn-primary" id="retryWebcamBtn" aria-label="Retry camera hardware access">RETRY CAMERA ACCESS</button>
+                <button class="btn" id="dismissFallbackBtn" aria-label="Dismiss and use virtual fallback" style="font-size: var(--text-xs);">USE VIRTUAL FALLBACK</button>
               </div>
             </div>
           </div>
 
           <!-- Real-time Gesture Feedback HUD Label -->
           <div class="gesture-feedback-hud" id="gestureFeedbackHud">
-            <span id="gestureFeedbackText">Point detected — timer started</span>
+            <span id="gestureFeedbackText">Point detected - timer started</span>
           </div>
 
           <!-- Instructional Banner -->
@@ -1260,27 +2061,27 @@
         <!-- VIEWPORT CONTROLS BAR -->
         <div class="viewport-controls-bar">
           <div class="feed-mode-switch">
-            <button class="feed-mode-btn active" id="feedWebcamBtn">
+            <button class="feed-mode-btn active" id="feedWebcamBtn" aria-label="Switch to live webcam feed">
               LIVE WEBCAM
             </button>
-            <button class="feed-mode-btn" id="feedVirtualBtn" title="Emergency fallback if camera hardware is unavailable">
+            <button class="feed-mode-btn" id="feedVirtualBtn" aria-label="Switch to virtual desk fallback" title="Emergency fallback if camera hardware is unavailable">
               VIRTUAL DESK
             </button>
           </div>
 
           <div class="sensitivity-control">
             <span>Motion Sensitivity:</span>
-            <input type="range" id="sensitivitySlider" min="15" max="60" value="30" title="Adjust distance threshold for motion triggers">
+            <input type="range" id="sensitivitySlider" min="15" max="60" value="30" aria-label="Adjust motion sensitivity threshold" title="Adjust distance threshold for motion triggers">
           </div>
 
-          <div style="font-size: 12px; color: var(--color-gray-dark); font-family: var(--font-mono);">
+          <div style="font-size: var(--text-xs); color: var(--color-gray-dark); font-family: var(--font-mono);">
             GESTURE: <span id="gestureDisplay" style="color: var(--color-black); font-weight: 800;">NONE</span>
           </div>
         </div>
       </section>
 
       <!-- RIGHT COLUMN: REGISTRATION DRAWER, NODES LIST & LIVE EVENT LOG -->
-      <section class="panel-column">
+      <section class="panel-column" id="features" aria-label="Active Spatial Tasks and Rule Bindings">
 
         <!-- IN-LINE OBJECT REGISTRATION DRAWER (Opens when an object is clicked) -->
         <div class="registration-modal" id="registrationDrawer">
@@ -1303,26 +2104,27 @@
               type="text" 
               class="rule-input" 
               id="ruleInputText" 
+              aria-label="Natural language rule description"
               placeholder="e.g. When I move this mug left, turn the light off" 
               autocomplete="off"
             />
-            <button class="mic-button" id="voiceMicBtn" title="Speak rule (Web Speech API)">
+            <button class="mic-button" id="voiceMicBtn" aria-label="Dictate rule using microphone voice recognition" title="Speak rule (Web Speech API)">
               VOICE
             </button>
           </div>
 
           <!-- Quick Rule Preset Chips -->
           <div class="quick-chips-row">
-            <button class="chip-btn" data-rule="When moved left, turn off the desk light">MOVE LEFT -> LIGHT OFF</button>
-            <button class="chip-btn" data-rule="When touched, pause Spotify music">TOUCH -> PAUSE SPOTIFY</button>
-            <button class="chip-btn" data-rule="When removed, dispatch emergency Slack ping">REMOVED -> SLACK ALERT</button>
-            <button class="chip-btn" data-rule="When moved up, increase speaker volume">MOVE UP -> VOL UP</button>
+            <button class="chip-btn" data-rule="When moved left, turn off the desk light" aria-label="Preset rule: Move left turns light off">MOVE LEFT -> LIGHT OFF</button>
+            <button class="chip-btn" data-rule="When touched, pause Spotify music" aria-label="Preset rule: Touch pauses Spotify">TOUCH -> PAUSE SPOTIFY</button>
+            <button class="chip-btn" data-rule="When removed, dispatch emergency Slack ping" aria-label="Preset rule: Removed sends Slack alert">REMOVED -> SLACK ALERT</button>
+            <button class="chip-btn" data-rule="When moved up, increase speaker volume" aria-label="Preset rule: Move up increases volume">MOVE UP -> VOL UP</button>
           </div>
 
           <!-- Actions -->
           <div class="reg-actions-row">
-            <button class="btn" id="cancelRegBtn">Cancel</button>
-            <button class="btn btn-primary" id="bindRuleBtn">
+            <button class="btn" id="cancelRegBtn" aria-label="Cancel object registration">Cancel</button>
+            <button class="btn btn-primary" id="bindRuleBtn" aria-label="Bind automated rule to object">
               BIND NODE
             </button>
           </div>
@@ -1335,7 +2137,7 @@
               <span>Active Tasks</span>
               <span class="panel-count" id="nodesCountBadge" style="display: none;"></span>
             </div>
-            <div style="font-size: 11px; color: var(--color-gray-mid); font-family: var(--font-mono); text-transform: uppercase;">
+            <div style="font-size: var(--text-xs); color: var(--color-gray-mid); font-family: var(--font-mono); text-transform: uppercase;">
               Live Spatial Automations
             </div>
           </div>
@@ -1349,10 +2151,10 @@
         <!-- LIVE EVENT STREAM / TOAST FEED -->
         <div class="activity-section">
           <div class="panel-header">
-            <div class="panel-title" style="font-size: 14px;">
+            <div class="panel-title">
               <span>Live Action Stream</span>
             </div>
-            <button class="btn" id="clearLogBtn" style="padding: 2px 8px; font-size: 11px;">
+            <button class="btn" id="clearLogBtn" aria-label="Clear action stream log" style="padding: 2px 8px; font-size: var(--text-xs);">
               Clear
             </button>
           </div>
@@ -1367,29 +2169,129 @@
 
       </section>
     </main>
+
+    <!-- LIVE DEMO SHOWCASE SECTION -->
+    <section class="demo-showcase-section" id="liveDemoSection" aria-label="System Demonstration and Walkthrough">
+      <div class="demo-showcase-header">
+        <div class="demo-title-group">
+          <span class="demo-badge">RECORDED ARCHIVE</span>
+          <h2 class="demo-heading">TANGIBLE BRIDGE CAPTURE</h2>
+        </div>
+        <div class="demo-caption">
+          REAL WEBCAM / 21-PT MEDIAPIPE GESTURES / ZERO LATENCY PHYSICAL PROP BINDINGS
+        </div>
+      </div>
+
+      <div class="demo-media-wrapper">
+        <!-- Responsive video player (/* TODO: replace with real demo recording at assets/demo.mp4 */) -->
+        <video 
+          id="demoVideoPlayer" 
+          class="demo-video-player" 
+          playsinline 
+          muted 
+          loop 
+          controls 
+          preload="none" 
+          data-src="assets/demo.mp4" 
+          aria-label="Desk-OS tangible interaction demo playback">
+          <!-- TODO: replace with real demo recording at assets/demo.mp4 -->
+          Your browser does not support HTML5 video playback.
+        </video>
+
+        <!-- Blueprint Fallback Placeholder (Active when assets/demo.mp4 is awaiting capture) -->
+        <div class="demo-video-fallback" id="demoVideoFallback">
+          <div class="demo-fallback-badge">OFFLINE DEMO BLUEPRINT</div>
+          <div class="demo-fallback-title">DEMO RECORDING PENDING AT <code>assets/demo.mp4</code></div>
+          <div class="demo-fallback-desc">
+            To view recorded studio execution, place an MP4 recording in <code>assets/demo.mp4</code>. Meanwhile, all physical tracking, pen lift timer, and gesture pipelines are live in the interactive canvas above.
+          </div>
+          <div class="demo-fallback-steps">
+            <div class="fallback-step-item">
+              <span class="step-num">01</span>
+              <span>POINT: START TIMER</span>
+            </div>
+            <div class="fallback-step-item">
+              <span class="step-num">02</span>
+              <span>FIST: PAUSE TIMER</span>
+            </div>
+            <div class="fallback-step-item">
+              <span class="step-num">03</span>
+              <span>WAVE: RESET TIMER</span>
+            </div>
+            <div class="fallback-step-item">
+              <span class="step-num">04</span>
+              <span>LIFT PEN: RUN FOCUS SESSION</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- ========================================================================
        BOTTOM DARK SECTION: EDITORIAL FOOTER & LEGEND (BLACK #000000)
        ======================================================================== -->
-  <footer class="editorial-footer">
-    <div class="footer-spec">
-      <span>DESK-OS // BUILD 2.4</span>
-      <span>•</span>
-      <span>STREAM: <b>LIVE 720P</b></span>
-      <span>•</span>
-      <span>PIPELINE: <b>MEDIAPIPE 21-LM</b></span>
-      <span>•</span>
-      <span>CONTRAST: <b>21:1 AAA</b></span>
+  <footer class="editorial-footer" role="contentinfo">
+    <div class="footer-main-grid">
+      <!-- Left Column: Wordmark & Tagline -->
+      <div class="footer-brand-col">
+        <div class="footer-wordmark">Desk-OS</div>
+        <div class="footer-tagline">point. speak. automate.</div>
+        <p class="footer-subdesc">
+          Local-first spatial computing bridge connecting physical desktop surfaces with automated software workflows. Zero frame transmission.
+        </p>
+      </div>
+
+      <!-- Middle Column: Navigation Links (Identical to Header) -->
+      <div class="footer-nav-col">
+        <div class="footer-col-heading">NAVIGATION</div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="#mainContent" class="footer-link">Home</a>
+          <a href="#howItWorks" class="footer-link">How It Works</a>
+          <a href="#features" class="footer-link">Features</a>
+          <a href="#liveDemoSection" class="footer-link">Demo</a>
+        </nav>
+      </div>
+
+      <!-- Legal & Connect Column -->
+      <div class="footer-legal-col">
+        <div class="footer-col-heading">LEGAL</div>
+        <div class="footer-nav">
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <!-- TODO: add real contact / social link -->
+        </div>
+      </div>
     </div>
-    <div class="footer-legend">
-      <span><b>[POINT]</b> START</span>
-      <span>•</span>
-      <span><b>[FIST]</b> PAUSE</span>
-      <span>•</span>
-      <span><b>[WAVE]</b> RESET</span>
-      <span>•</span>
-      <span><b>[PEN LIFT]</b> DOCK TIMER</span>
+
+    <!-- Hardware / Gesture Legend Strip -->
+    <div class="footer-telemetry-row">
+      <div class="footer-spec">
+        <span>DESK-OS // BUILD 2.4</span>
+        <span>/</span>
+        <span>STREAM: <b>LIVE 720P</b></span>
+        <span>/</span>
+        <span>PIPELINE: <b>MEDIAPIPE 21-LM</b></span>
+        <span>/</span>
+        <span>CONTRAST: <b>21:1 AAA</b></span>
+      </div>
+      <div class="footer-legend">
+        <span><b>[POINT]</b> START</span>
+        <span>/</span>
+        <span><b>[FIST]</b> PAUSE</span>
+        <span>/</span>
+        <span><b>[WAVE]</b> RESET</span>
+        <span>/</span>
+        <span><b>[PEN LIFT]</b> DOCK TIMER</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Copyright Row -->
+    <div class="footer-bottom-row">
+      <div class="footer-copyright">
+        &copy; <span id="currentYear"></span> Desk-OS. All rights reserved.
+      </div>
+      <div class="footer-local-badge">LOCAL-FIRST // ZERO CLOUD DEPENDENCY</div>
     </div>
   </footer>
 
@@ -1405,28 +2307,30 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 11px; font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Gemini API Key (Optional)</label>
+        <label style="font-size: var(--text-xs); font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Gemini API Key (Optional)</label>
         <input 
           type="password" 
           id="geminiApiKeyInput" 
           class="rule-input" 
+          aria-label="Gemini API Key (Optional)"
           placeholder="AIzaSy..."
         />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 11px; font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Custom Webhook Endpoint (Optional)</label>
+        <label style="font-size: var(--text-xs); font-weight: 700; color: var(--color-gray-mid); text-transform: uppercase; font-family: var(--font-mono);">Custom Webhook Endpoint (Optional)</label>
         <input 
           type="text" 
           id="customWebhookInput" 
           class="rule-input" 
+          aria-label="Custom Webhook Endpoint (Optional)"
           placeholder="https://maker.ifttt.com/use/..."
         />
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-        <button class="btn" id="closeSettingsBtn">Close</button>
-        <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+        <button class="btn" id="closeSettingsBtn" aria-label="Close settings modal">Close</button>
+        <button class="btn btn-primary" id="saveSettingsBtn" aria-label="Save settings">Save Settings</button>
       </div>
     </div>
   </div>
@@ -1492,6 +2396,7 @@
         webhookUrl: localStorage.getItem('desk_os_webhook_url') || '',
         motionThreshold: 30, // Pixels displacement
         touchRadius: 36, // Proximity for touch
+        voiceAnnouncementEnabled: false,
         
         // Audio
         audioCtx: null
@@ -1528,14 +2433,23 @@
       const timerResetBtn = document.getElementById('timerResetBtn');
       const timerToggleBtn = document.getElementById('timerToggleBtn');
 
+      // Global Navigation & Control Refs
       const demoModeBtn = document.getElementById('demoModeBtn');
       const resetDemoBtn = document.getElementById('resetDemoBtn');
+      const voiceAnnounceToggleBtn = document.getElementById('voiceAnnounceToggleBtn');
+      const voiceAnnounceLabel = document.getElementById('voiceAnnounceLabel');
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeToggleLabel = document.getElementById('themeToggleLabel');
+      const themeToggleIcon = document.getElementById('themeToggleIcon');
       const sfxToggleBtn = document.getElementById('sfxToggleBtn');
       const settingsBtn = document.getElementById('settingsBtn');
       const feedWebcamBtn = document.getElementById('feedWebcamBtn');
       const feedVirtualBtn = document.getElementById('feedVirtualBtn');
       const sensitivitySlider = document.getElementById('sensitivitySlider');
       const gestureDisplay = document.getElementById('gestureDisplay');
+      const a11yLiveRegion = document.getElementById('a11yLiveRegion');
+      const demoVideoPlayer = document.getElementById('demoVideoPlayer');
+      const demoVideoFallback = document.getElementById('demoVideoFallback');
 
       const registrationDrawer = document.getElementById('registrationDrawer');
       const regPatchPreview = document.getElementById('regPatchPreview');
@@ -1561,6 +2475,143 @@
       const saveSettingsBtn = document.getElementById('saveSettingsBtn');
       const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
       const customWebhookInput = document.getElementById('customWebhookInput');
+
+      // ----------------------------------------------------------------------
+      // ACCESSIBILITY & VOICE ANNOUNCEMENT ENGINE (WCAG 2.1 AA & Web Speech API)
+      // ----------------------------------------------------------------------
+      function announceSystemEvent(message, speakVoice = true) {
+        if (!message) return;
+
+        // 1. Polite screen reader live region announcement
+        if (a11yLiveRegion) {
+          a11yLiveRegion.textContent = message;
+        }
+
+        // 2. Optional spoken voice feedback (Web Speech API)
+        if (speakVoice && state.voiceAnnouncementEnabled && 'speechSynthesis' in window) {
+          try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.rate = 1.05;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.95;
+            window.speechSynthesis.speak(utterance);
+          } catch (e) {
+            console.warn('[Desk-OS SpeechSynthesis Guarded]', e);
+          }
+        }
+      }
+
+      function applyTheme(theme, save = true) {
+        const isDark = (theme === 'dark');
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        if (save) {
+          localStorage.setItem('desk-os-theme', isDark ? 'dark' : 'light');
+        }
+
+        if (themeToggleLabel) {
+          themeToggleLabel.textContent = isDark ? 'LIGHT' : 'DARK';
+        }
+        if (themeToggleBtn) {
+          themeToggleBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        }
+        if (themeToggleIcon) {
+          if (isDark) {
+            // Sun icon (minimal clean vector, zero emojis)
+            themeToggleIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+          } else {
+            // Moon icon (minimal clean vector, zero emojis)
+            themeToggleIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+          }
+        }
+      }
+
+      function initTheme() {
+        const savedTheme = localStorage.getItem('desk-os-theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+          applyTheme(savedTheme, false);
+        } else {
+          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          applyTheme(prefersDark ? 'dark' : 'light', false);
+        }
+
+        if (themeToggleBtn) {
+          themeToggleBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next, true);
+            announceSystemEvent(`Theme changed to ${next} mode`, false);
+            showToast('Theme Updated', `${next.toUpperCase()} mode active`, 'THEME');
+          });
+        }
+      }
+
+      function initVoiceAnnouncements() {
+        const savedVoice = localStorage.getItem('desk-os-voice');
+        state.voiceAnnouncementEnabled = (savedVoice === 'true');
+
+        function updateVoiceButton() {
+          if (voiceAnnounceLabel) {
+            voiceAnnounceLabel.textContent = state.voiceAnnouncementEnabled ? 'VOICE: ON' : 'VOICE: OFF';
+          }
+          if (voiceAnnounceToggleBtn) {
+            if (state.voiceAnnouncementEnabled) {
+              voiceAnnounceToggleBtn.classList.add('active');
+              voiceAnnounceToggleBtn.style.color = 'var(--color-accent)';
+              voiceAnnounceToggleBtn.style.borderColor = 'var(--color-accent)';
+            } else {
+              voiceAnnounceToggleBtn.classList.remove('active');
+              voiceAnnounceToggleBtn.style.color = '';
+              voiceAnnounceToggleBtn.style.borderColor = '';
+            }
+            voiceAnnounceToggleBtn.setAttribute('aria-label', 
+              state.voiceAnnouncementEnabled ? 'Disable spoken voice feedback' : 'Enable spoken voice feedback'
+            );
+          }
+        }
+
+        updateVoiceButton();
+
+        if (voiceAnnounceToggleBtn) {
+          voiceAnnounceToggleBtn.addEventListener('click', () => {
+            state.voiceAnnouncementEnabled = !state.voiceAnnouncementEnabled;
+            localStorage.setItem('desk-os-voice', state.voiceAnnouncementEnabled ? 'true' : 'false');
+            updateVoiceButton();
+
+            if (state.voiceAnnouncementEnabled) {
+              showToast('Voice Feedback Active', 'Key events will be announced aloud', 'VOICE');
+              announceSystemEvent('Voice announcements enabled', true);
+            } else {
+              showToast('Voice Feedback Muted', 'Spoken announcements disabled', 'VOICE');
+              announceSystemEvent('Voice announcements disabled', false);
+            }
+          });
+        }
+      }
+
+      function initDemoVideo() {
+        if (!demoVideoPlayer || !demoVideoFallback) return;
+
+        // Default to blueprint fallback while video recording is awaiting capture
+        demoVideoPlayer.style.display = 'none';
+        demoVideoFallback.style.display = 'flex';
+
+        demoVideoPlayer.addEventListener('error', () => {
+          demoVideoPlayer.style.display = 'none';
+          demoVideoFallback.style.display = 'flex';
+        });
+
+        demoVideoPlayer.addEventListener('canplay', () => {
+          demoVideoPlayer.style.display = 'block';
+          demoVideoFallback.style.display = 'none';
+        });
+      }
+
+      function loadDemoVideo(src = 'assets/demo.mp4') {
+        if (!demoVideoPlayer || !demoVideoFallback) return;
+        demoVideoPlayer.src = src;
+        demoVideoPlayer.load();
+      }
 
       // ----------------------------------------------------------------------
       // EXPLICIT HARDWARE PIPELINE STATE MACHINE & DIAGNOSTICS
@@ -1599,7 +2650,7 @@
             cameraStatusDot.className = 'status-dot active';
             cameraStatusText.textContent = 'Camera: Live';
             handsStatusDot.className = 'status-dot warn';
-            handsStatusText.textContent = 'Hands: Failed — using fallback';
+            handsStatusText.textContent = 'Hands: Failed - using fallback';
           } else {
             cameraStatusDot.className = 'status-dot error';
             cameraStatusText.textContent = 'Camera: Blocked';
@@ -1623,6 +2674,8 @@
           playSciFiChime('fire');
           showToast('Focus Stopwatch Started', reason, 'TIMER');
           appendLog(`Focus Timer started: ${reason}`, true);
+          updatePenTimerDisplay();
+          announceSystemEvent('Pen focus timer started');
         }
       }
 
@@ -1635,6 +2688,8 @@
           playSciFiChime('register');
           showToast('Focus Stopwatch Paused', reason, 'TIMER');
           appendLog(`Focus Timer paused (${reason}) at ${timerDisplay ? timerDisplay.textContent : ''}`, false);
+          updatePenTimerDisplay();
+          announceSystemEvent('Pen focus timer paused');
         }
       }
 
@@ -1646,6 +2701,7 @@
         updatePenTimerDisplay();
         showToast('Timer Reset', 'Focus Stopwatch reset to 00:00.0', 'TIMER');
         appendLog('Focus Stopwatch reset to 00:00.0');
+        announceSystemEvent('Pen focus timer reset');
       }
 
       function updatePenTimerDisplay() {
@@ -1752,11 +2808,11 @@
         }
 
         // ------------------------------------------------------------------
-        // STEP 1 — GESTURE DEFINITIONS FROM MEDIAPIPE 21 LANDMARKS
+        // STEP 1 - GESTURE DEFINITIONS FROM MEDIAPIPE 21 LANDMARKS
         // ------------------------------------------------------------------
 
         // 1. Point Gesture:
-        // Index finger (5–8) extended straight.
+        // Index finger (5-8) extended straight.
         // Middle, ring, and pinky fingertips (12, 16, 20) are curled below their PIP joints
         // (closer to palm center landmark 9 / wrist 0). Thumb position is ignored.
         const isIndexExtended = (dist(8, 0) > dist(6, 0)) && (dist(8, 0) > 1.15 * handSize);
@@ -1778,13 +2834,13 @@
                        (dist(20, 0) < 1.12 * handSize);
 
         // 3. Wave Gesture:
-        // Track the palm center (landmark 9) x-position over the last ~15 frames (roughly 0.5–1s).
+        // Track the palm center (landmark 9) x-position over the last ~15 frames (roughly 0.5-1s).
         // Multiple direction reversals (left-right-left, or right-left-right) within that window.
         state.gestureControl.palmXHistory.push({ x: landmarks[9].x, t: now });
-        if (state.gestureControl.palmXHistory.length > 22) {
+        if (state.gestureControl.palmXHistory.length > 50) {
           state.gestureControl.palmXHistory.shift();
         }
-        state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 1000);
+        state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 6000);
 
         let isWave = false;
         if (!isFist && !isPoint && state.gestureControl.palmXHistory.length >= 4) {
@@ -1813,7 +2869,7 @@
         if (gestureDisplay) gestureDisplay.textContent = state.currentGesture.toUpperCase();
 
         // ------------------------------------------------------------------
-        // STEP 2 & 3 — DEBOUNCE, FEEDBACK & TIMER DISPATCH
+        // STEP 2 & 3 - DEBOUNCE, FEEDBACK & TIMER DISPATCH
         // ------------------------------------------------------------------
         state.gestureControl._debug = {
           isPoint,
@@ -1846,13 +2902,16 @@
         // Execute Timer Actions
         if (candidate === 'Point') {
           startPenTimer(null, 'Gesture: Point');
-          showGestureFeedback('Point detected — timer started');
+          showGestureFeedback('Point detected - timer started');
+          announceSystemEvent('Point gesture detected: Timer started');
         } else if (candidate === 'Fist') {
           pausePenTimer(null, 'Gesture: Fist');
-          showGestureFeedback('Fist detected — timer stopped');
+          showGestureFeedback('Fist detected - timer stopped');
+          announceSystemEvent('Fist gesture detected: Timer stopped');
         } else if (candidate === 'Wave') {
           resetPenTimer();
-          showGestureFeedback('Wave detected — timer reset');
+          showGestureFeedback('Wave detected - timer reset');
+          announceSystemEvent('Wave gesture detected: Timer reset');
         }
 
         // Lock until hand returns to open/neutral state
@@ -1981,7 +3040,7 @@
       function showToast(title, message, icon = '') {
         const toast = document.createElement('div');
         toast.className = 'toast';
-        const tag = icon ? `<div class="toast-icon" style="font-size:10px; font-weight:800; border:1px solid var(--color-white); padding:2px 5px; border-radius:2px; font-family:var(--font-mono);">${icon}</div>` : '';
+        const tag = icon ? `<div class="toast-icon" style="font-size:var(--text-xs); font-weight:800; border:1px solid var(--color-white); padding:2px 5px; border-radius:2px; font-family:var(--font-mono);">${icon}</div>` : '';
         toast.innerHTML = `
           ${tag}
           <div class="toast-content">
@@ -2345,7 +3404,7 @@
           // Hand left the frame: clear lock so next gesture can fire
           state.gestureControl.isWaitingForNeutral = false;
           state.gestureControl.lastFiredGesture = null;
-          state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 1000);
+          state.gestureControl.palmXHistory = state.gestureControl.palmXHistory.filter(h => now - h.t <= 6000);
           return;
         }
 
@@ -2558,9 +3617,14 @@
               obj.dockLiftCounter = 0;
 
               // Confirm after 2 consecutive frames of pen being rested in dock
-              if (obj.dockReturnCounter >= 2 && obj.dockStatus !== 'docked') {
-                obj.dockStatus = 'docked';
-                pausePenTimer(obj, 'Real physical pen returned to resting dock');
+              if (obj.dockReturnCounter >= 2) {
+                if (obj.dockStatus !== 'docked') {
+                  obj.dockStatus = 'docked';
+                  pausePenTimer(obj, 'Real physical pen returned to resting dock');
+                }
+                // Lock coordinates to resting dock to prevent camera noise from drifting
+                obj.x = rx;
+                obj.y = ry;
               }
             }
           }
@@ -2630,7 +3694,7 @@
           cardElem.classList.add('fired');
           const countBadge = cardElem.querySelector('.node-stats');
           if (countBadge) {
-            countBadge.textContent = `Fired ${obj.fireCount}x • Active`;
+            countBadge.textContent = `Fired ${obj.fireCount}x / Active`;
           }
         }
 
@@ -2648,6 +3712,7 @@
         );
 
         appendLog(`${obj.name} -> ${actionType}: ${actionLabel} (${reason})`, true);
+        announceSystemEvent(`${obj.name} triggered: ${actionLabel}`);
 
         // Real Webhook Dispatch if user supplied an endpoint (safely guarded)
         if (state.webhookUrl) {
@@ -2952,11 +4017,11 @@ Rule: "${text}"`;
 
           arCtx.save();
 
-          // 1. Shockwave Pulse if fired (white expanding ring)
+          // 1. Shockwave Pulse if fired (orange accent expanding ring)
           if (obj.isShockwaveActive) {
             obj.shockwaveRadius += 3.5;
             const alpha = Math.max(0, 1 - (obj.shockwaveRadius / 95));
-            arCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            arCtx.strokeStyle = `rgba(217, 72, 15, ${alpha})`;
             arCtx.lineWidth = 2.5;
             arCtx.beginPath();
             arCtx.arc(x, y, obj.shockwaveRadius, 0, Math.PI * 2);
@@ -2990,8 +4055,8 @@ Rule: "${text}"`;
           arCtx.lineTo(x + half, y + half - cornerLen);
           arCtx.stroke();
 
-          // 3. Central Anchor Point
-          arCtx.fillStyle = '#FFFFFF';
+          // 3. Central Anchor Point (Orange Accent when active / fired)
+          arCtx.fillStyle = isFiredRecently ? '#D9480F' : '#FFFFFF';
           arCtx.beginPath();
           arCtx.arc(x, y, 5, 0, Math.PI * 2);
           arCtx.fill();
@@ -3068,7 +4133,7 @@ Rule: "${text}"`;
           const px = (1-t)**3 * startX + 3*(1-t)**2*t * cp1X + 3*(1-t)*t**2 * cp2X + t**3 * endX;
           const py = (1-t)**3 * startY + 3*(1-t)**2*t * cp1Y + 3*(1-t)*t**2 * cp2Y + t**3 * endY;
           
-          arCtx.fillStyle = '#FFFFFF';
+          arCtx.fillStyle = isFiredRecently ? '#D9480F' : '#FFFFFF';
           arCtx.beginPath();
           arCtx.arc(px, py, isFiredRecently ? 4 : 2.5, 0, Math.PI * 2);
           arCtx.fill();
@@ -3097,11 +4162,11 @@ Rule: "${text}"`;
           arCtx.textAlign = 'left';
           arCtx.fillText(obj.name.toUpperCase(), cardX + 10, cardY + 18);
 
-          // Status Badge Pill
+          // Status Badge Pill (Orange Accent when active / fired)
           const statusText = isFiredRecently ? 'FIRED' : (obj.fireCount > 0 ? `FIRED ${obj.fireCount}X` : 'READY');
           arCtx.font = 'bold 9px monospace';
           const sw = arCtx.measureText(statusText).width;
-          arCtx.fillStyle = isFiredRecently ? '#000000' : '#FFFFFF';
+          arCtx.fillStyle = isFiredRecently ? '#D9480F' : '#FFFFFF';
           arCtx.fillRect(cardX + cardW - sw - 14, cardY + 8, sw + 8, 14);
           arCtx.fillStyle = isFiredRecently ? '#FFFFFF' : '#000000';
           arCtx.fillText(statusText, cardX + cardW - sw - 10, cardY + 19);
@@ -3234,7 +4299,7 @@ Rule: "${text}"`;
         const text = ruleInputText.value.trim() || 'When moved left, turn off desk lights';
         if (!state.pendingRegistration) return;
 
-        bindRuleBtn.textContent = '⚡ Analyzing...';
+        bindRuleBtn.textContent = 'ANALYZING...';
         bindRuleBtn.disabled = true;
 
         const parsedRule = await parseRuleText(text);
@@ -3335,15 +4400,15 @@ Rule: "${text}"`;
                 <span>-> <strong>${obj.rule.action_label}</strong> (${obj.rule.action_type})</span>
               </div>
               <div class="node-stats">
-                Fired ${obj.fireCount || 0}x • ${obj.isPenTimer ? 'Resting Dock Active' : 'Cooldown Ready'}
+                Fired ${obj.fireCount || 0}x / ${obj.isPenTimer ? 'Resting Dock Active' : 'Cooldown Ready'}
               </div>
             </div>
             <div class="node-actions">
-              <button class="btn-fire" data-id="${obj.id}" title="Simulate trigger fire now">
+              <button class="btn-fire" data-id="${obj.id}" aria-label="Simulate trigger fire for ${obj.name}" title="Simulate trigger fire now">
                 Fire
               </button>
-              <button class="btn-delete" data-id="${obj.id}" title="Delete node">
-                ✕
+              <button class="btn-delete" data-id="${obj.id}" aria-label="Delete node ${obj.name}" title="Delete node">
+                DEL
               </button>
             </div>
           `;
@@ -3414,7 +4479,7 @@ Rule: "${text}"`;
 
       voiceMicBtn.addEventListener('click', () => {
         if (!recognition) {
-          showToast('Speech Not Supported', 'Please type rule in text box', 'ℹ️');
+          showToast('Speech Not Supported', 'Please type rule in text box', 'VOICE');
           return;
         }
         try {
@@ -3445,7 +4510,7 @@ Rule: "${text}"`;
 
       function loadDemoPrewiredNodes() {
         if (!state.cameraStream) {
-          activateVirtualDeskMode('Camera unavailable — using virtual desk fallback');
+          activateVirtualDeskMode('Camera unavailable - using virtual desk fallback');
         } else {
           state.feedMode = 'webcam';
           feedWebcamBtn.classList.add('active');
@@ -3633,9 +4698,84 @@ Rule: "${text}"`;
       });
 
       // ----------------------------------------------------------------------
+      // HEADER & FOOTER ENHANCEMENTS (NAVIGATION, ON-SCROLL & YEAR)
+      // ----------------------------------------------------------------------
+      function initHeaderFooter() {
+        // 1. Mobile navigation menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const siteNav = document.getElementById('siteNav');
+        const mobileMenuIcon = document.getElementById('mobileMenuIcon');
+
+        if (mobileMenuBtn && siteNav) {
+          mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = siteNav.classList.toggle('is-open');
+            mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            mobileMenuBtn.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+            if (mobileMenuIcon) {
+              if (isOpen) {
+                // X (close) vector icon
+                mobileMenuIcon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+              } else {
+                // Hamburger vector icon
+                mobileMenuIcon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+              }
+            }
+          });
+
+          // Close mobile nav when clicking any in-page nav link
+          siteNav.querySelectorAll('.site-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+              if (siteNav.classList.contains('is-open')) {
+                siteNav.classList.remove('is-open');
+                mobileMenuBtn.setAttribute('aria-expanded', 'false');
+                mobileMenuBtn.setAttribute('aria-label', 'Open navigation menu');
+                if (mobileMenuIcon) {
+                  mobileMenuIcon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+                }
+              }
+            });
+          });
+
+          // Close on outside document click
+          document.addEventListener('click', (e) => {
+            if (siteNav.classList.contains('is-open') && !siteNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+              siteNav.classList.remove('is-open');
+              mobileMenuBtn.setAttribute('aria-expanded', 'false');
+              mobileMenuBtn.setAttribute('aria-label', 'Open navigation menu');
+              if (mobileMenuIcon) {
+                mobileMenuIcon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+              }
+            }
+          });
+        }
+
+        // 2. Sticky header on-scroll subtle separation
+        const siteHeader = document.getElementById('siteHeader');
+        if (siteHeader) {
+          const updateScrollState = () => {
+            const isScrolled = window.scrollY > 8;
+            siteHeader.classList.toggle('header-scrolled', isScrolled);
+          };
+          window.addEventListener('scroll', updateScrollState, { passive: true });
+          updateScrollState();
+        }
+
+        // 3. Dynamic copyright year
+        const currentYearEl = document.getElementById('currentYear');
+        if (currentYearEl) {
+          currentYearEl.textContent = new Date().getFullYear().toString();
+        }
+      }
+
+      // ----------------------------------------------------------------------
       // BOOTSTRAP INITIALIZATION
       // ----------------------------------------------------------------------
       function boot() {
+        initTheme();
+        initVoiceAnnouncements();
+        initDemoVideo();
+        initHeaderFooter();
         initWebcam();
         renderARLoop();
         renderNodesList();
@@ -3661,7 +4801,11 @@ Rule: "${text}"`;
           resetPenTimer,
           processHandGestures,
           onHandResults,
-          showGestureFeedback
+          showGestureFeedback,
+          announceSystemEvent,
+          applyTheme,
+          initVoiceAnnouncements,
+          loadDemoVideo
         };
       }
 

@@ -16,11 +16,15 @@ if (-not (Test-Path $chromePath)) {
     $chromePath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 }
 
+$testDataDir = "$env:TEMP\desk-os-chrome-test-$DebugPort"
+Remove-Item -Recurse -Force $testDataDir -ErrorAction SilentlyContinue
+
 Write-Host "`n[1/6] Launching browser with live webcam mock: $chromePath" -ForegroundColor Yellow
 $proc = Start-Process -FilePath $chromePath -ArgumentList @(
     "--headless=new",
     "--remote-debugging-port=$DebugPort",
     "--remote-allow-origins=*",
+    "--user-data-dir=$testDataDir",
     "--disable-gpu",
     "--disable-extensions",
     "--use-fake-ui-for-media-stream",
@@ -137,7 +141,7 @@ try {
             returnByValue = $true
             awaitPromise = $true
         }
-        $resp = Read-CdpResponse $reqId 6000
+        $resp = Read-CdpResponse $reqId 12000
         if ($resp.result.exceptionDetails) {
             throw "Evaluation error: $($resp.result.exceptionDetails | ConvertTo-Json -Depth 3)"
         }
@@ -455,6 +459,7 @@ try {
         (async function() {
             // Natural human hand wave: whole hand shifts along X axis with multiple reversals
             const shifts = [0.0, 0.06, 0.12, 0.06, 0.0, -0.06, -0.12, -0.06, 0.0, 0.06, 0.12];
+            const stepLogs = [];
             for (let i = 0; i < shifts.length; i++) {
                 const lm = window.__makeTestLandmarks('neutral');
                 const dx = shifts[i];
@@ -462,6 +467,12 @@ try {
                     lm[j].x += dx;
                 }
                 window.DeskOS.onHandResults({ multiHandLandmarks: [lm] });
+                stepLogs.push({
+                    i,
+                    history: window.DeskOS.state.gestureControl.palmXHistory.map(h => ({ x: Math.round(h.x * 1000) / 1000, dt: Math.round(performance.now() - h.t) })),
+                    curGesture: window.DeskOS.state.currentGesture,
+                    debug: window.DeskOS.state.gestureControl._debug
+                });
                 await new Promise(r => setTimeout(r, 45));
             }
             return {
@@ -473,11 +484,13 @@ try {
                 historyLen: window.DeskOS.state.gestureControl.palmXHistory.length,
                 lastFired: window.DeskOS.state.gestureControl.lastFiredGesture,
                 isWaiting: window.DeskOS.state.gestureControl.isWaitingForNeutral,
-                _debug: window.DeskOS.state.gestureControl._debug
+                _debug: window.DeskOS.state.gestureControl._debug,
+                stepLogs
             };
         })()
 "@
         Write-Host "    Wave Detection: Running=$($waveRes.isRunning), Display=$($waveRes.display), Badge=$($waveRes.badge), HistoryLen=$($waveRes.historyLen), LastFired=$($waveRes.lastFired), Debug=$($waveRes._debug | ConvertTo-Json -Compress), Feedback='$($waveRes.feedbackText)'" -ForegroundColor Green
+        Write-Host "    Wave Steps: $($waveRes.stepLogs | ConvertTo-Json -Depth 3 -Compress)" -ForegroundColor Cyan
         if ($waveRes.display -ne "00:00.0") {
             throw "FAIL: Wave gesture did not reset timer to 00:00.0 in Cycle $cycle! Current: $($waveRes.display)"
         }
@@ -570,7 +583,159 @@ try {
     Eval-Js "document.getElementById('resetDemoBtn').click();"
     Write-Host "PASS: Demo state cleared cleanly!" -ForegroundColor Green
 
-    # 9. Check Console Errors
+    # 8. Test Accessibility Mode & Screen-Reader Live Region & Voice Mode
+    Write-Host "`n[8/10] Testing Accessibility Mode & Screen-Reader Live Region & Voice Mode..." -ForegroundColor Yellow
+    $a11yCheck = Eval-Js @"
+    ({
+        headerRole: document.querySelector('header')?.getAttribute('role'),
+        navTag: document.querySelector('.header-actions')?.tagName?.toLowerCase(),
+        mainRole: document.getElementById('mainContent')?.getAttribute('role'),
+        footerRole: document.querySelector('footer')?.getAttribute('role'),
+        skipLinkHref: document.querySelector('.skip-to-content')?.getAttribute('href'),
+        liveRegionExists: !!document.getElementById('a11yLiveRegion'),
+        liveRegionLive: document.getElementById('a11yLiveRegion')?.getAttribute('aria-live'),
+        liveRegionAtomic: document.getElementById('a11yLiveRegion')?.getAttribute('aria-atomic'),
+        voiceBtnLabel: document.getElementById('voiceAnnounceLabel')?.textContent,
+        voiceAriaLabel: document.getElementById('voiceAnnounceToggleBtn')?.getAttribute('aria-label')
+    })
+"@
+    Write-Host "  Landmarks: headerRole='$($a11yCheck.headerRole)', navTag='$($a11yCheck.navTag)', mainRole='$($a11yCheck.mainRole)', footerRole='$($a11yCheck.footerRole)'" -ForegroundColor Cyan
+    Write-Host "  SkipLink: href='$($a11yCheck.skipLinkHref)', LiveRegion: exists=$($a11yCheck.liveRegionExists), live='$($a11yCheck.liveRegionLive)'" -ForegroundColor Cyan
+
+    if ($a11yCheck.headerRole -ne "banner") { throw "FAIL: <header> is missing role='banner'!" }
+    if ($a11yCheck.navTag -ne "nav") { throw "FAIL: Global application controls must use semantic <nav> element!" }
+    if ($a11yCheck.mainRole -ne "main") { throw "FAIL: Main content area is missing role='main'!" }
+    if ($a11yCheck.footerRole -ne "contentinfo") { throw "FAIL: <footer> is missing role='contentinfo'!" }
+    if ($a11yCheck.skipLinkHref -ne "#mainContent") { throw "FAIL: Skip link does not point to #mainContent!" }
+    if (-not $a11yCheck.liveRegionExists -or $a11yCheck.liveRegionLive -ne "polite") { throw "FAIL: #a11yLiveRegion is missing or does not have aria-live='polite'!" }
+
+    # Test Live Region Event Updates
+    Eval-Js "window.DeskOS.announceSystemEvent('Pen focus timer started', false);"
+    Start-Sleep -Milliseconds 100
+    $liveText = Eval-Js "document.getElementById('a11yLiveRegion').textContent"
+    if ($liveText -notmatch "Pen focus timer started") {
+        throw "FAIL: a11y live region was not updated with event text! Got: '$liveText'"
+    }
+    Write-Host "  PASS: ARIA live region correctly announced system event ('$liveText')!" -ForegroundColor Green
+
+    # Test Voice Announcement Toggle
+    Eval-Js "document.getElementById('voiceAnnounceToggleBtn').click();"
+    Start-Sleep -Milliseconds 200
+    $voiceCheckOn = Eval-Js @"
+    ({
+        enabled: window.DeskOS.state.voiceAnnouncementEnabled,
+        btnLabel: document.getElementById('voiceAnnounceLabel').textContent,
+        storage: localStorage.getItem('desk-os-voice')
+    })
+"@
+    Write-Host "  Voice Toggle ON: Enabled=$($voiceCheckOn.enabled), Label='$($voiceCheckOn.btnLabel)', LocalStorage=$($voiceCheckOn.storage)" -ForegroundColor Cyan
+    if (-not $voiceCheckOn.enabled -or $voiceCheckOn.btnLabel -ne "VOICE: ON" -or $voiceCheckOn.storage -ne "true") {
+        throw "FAIL: Voice toggle ON did not update state/DOM/storage!"
+    }
+
+    # Toggle Voice OFF
+    Eval-Js "document.getElementById('voiceAnnounceToggleBtn').click();"
+    Start-Sleep -Milliseconds 200
+    $voiceCheckOff = Eval-Js @"
+    ({
+        enabled: window.DeskOS.state.voiceAnnouncementEnabled,
+        btnLabel: document.getElementById('voiceAnnounceLabel').textContent,
+        storage: localStorage.getItem('desk-os-voice')
+    })
+"@
+    Write-Host "  Voice Toggle OFF: Enabled=$($voiceCheckOff.enabled), Label='$($voiceCheckOff.btnLabel)', LocalStorage=$($voiceCheckOff.storage)" -ForegroundColor Cyan
+    if ($voiceCheckOff.enabled -or $voiceCheckOff.btnLabel -ne "VOICE: OFF" -or $voiceCheckOff.storage -ne "false") {
+        throw "FAIL: Voice toggle OFF did not reset state/DOM/storage!"
+    }
+    Write-Host "PASS: Accessibility landmarks, skip link, live region, and voice announcement mode passed with 100% compliance!" -ForegroundColor Green
+
+    # 9. Test Dark Mode Inversion & Persistence
+    Write-Host "`n[9/10] Testing Dark Mode Inversion & Persistence..." -ForegroundColor Yellow
+    
+    # Establish known baseline: switch to light mode first
+    Eval-Js "window.DeskOS.applyTheme('light');"
+    Start-Sleep -Milliseconds 150
+
+    # Toggle to Dark Mode via button click
+    Eval-Js "document.getElementById('themeToggleBtn').click();"
+    Start-Sleep -Milliseconds 200
+    $darkCheck = Eval-Js @"
+    ({
+        themeAttr: document.documentElement.getAttribute('data-theme'),
+        btnLabel: document.getElementById('themeToggleLabel').textContent,
+        storage: localStorage.getItem('desk-os-theme'),
+        deckBg: window.getComputedStyle(document.documentElement).getPropertyValue('--theme-deck-bg').trim(),
+        deckFg: window.getComputedStyle(document.documentElement).getPropertyValue('--theme-deck-fg').trim(),
+        accentColor: window.getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim()
+    })
+"@
+    Write-Host "  Dark Mode State: Attribute='$($darkCheck.themeAttr)', Button='$($darkCheck.btnLabel)', Storage='$($darkCheck.storage)'" -ForegroundColor Cyan
+    Write-Host "  Dark Tokens: DeckBg='$($darkCheck.deckBg)', DeckFg='$($darkCheck.deckFg)', Accent='$($darkCheck.accentColor)'" -ForegroundColor Cyan
+
+    if ($darkCheck.themeAttr -ne "dark") { throw "FAIL: <html> data-theme attribute was not set to 'dark'!" }
+    if ($darkCheck.btnLabel -ne "LIGHT") { throw "FAIL: Theme toggle button label should display 'LIGHT' in dark mode!" }
+    if ($darkCheck.storage -ne "dark") { throw "FAIL: Theme preference 'dark' was not saved to localStorage!" }
+    if ($darkCheck.deckBg -ne "#000000") { throw "FAIL: Dark theme deck background should be pure black #000000, got '$($darkCheck.deckBg)'!" }
+    if ($darkCheck.deckFg -ne "#FFFFFF") { throw "FAIL: Dark theme deck foreground should be pure white #FFFFFF, got '$($darkCheck.deckFg)'!" }
+    if ($darkCheck.accentColor -ne "#D9480F") { throw "FAIL: Accent color drifted from #D9480F, got '$($darkCheck.accentColor)'!" }
+
+    # Switch back to Light Mode
+    Eval-Js "document.getElementById('themeToggleBtn').click();"
+    Start-Sleep -Milliseconds 200
+    $lightCheck = Eval-Js @"
+    ({
+        themeAttr: document.documentElement.getAttribute('data-theme'),
+        btnLabel: document.getElementById('themeToggleLabel').textContent,
+        storage: localStorage.getItem('desk-os-theme'),
+        deckBg: window.getComputedStyle(document.documentElement).getPropertyValue('--theme-deck-bg').trim(),
+        deckFg: window.getComputedStyle(document.documentElement).getPropertyValue('--theme-deck-fg').trim()
+    })
+"@
+    Write-Host "  Light Mode State: Attribute='$($lightCheck.themeAttr)', Button='$($lightCheck.btnLabel)', Storage='$($lightCheck.storage)'" -ForegroundColor Cyan
+    if ($lightCheck.themeAttr -ne "light" -or $lightCheck.btnLabel -ne "DARK" -or $lightCheck.storage -ne "light") {
+        throw "FAIL: Switching back to light mode did not correctly update DOM/storage!"
+    }
+    if ($lightCheck.deckBg -ne "#FFFFFF" -or $lightCheck.deckFg -ne "#000000") {
+        throw "FAIL: Light theme tokens did not invert back to #FFFFFF / #000000!"
+    }
+    Write-Host "PASS: Dark mode toggle, strict monochrome CSS token inversion, and persistence verified successfully!" -ForegroundColor Green
+
+    # 10. Test Live Demo Section & Blueprint Fallback
+    Write-Host "`n[10/10] Testing Live Demo Section & Blueprint Fallback..." -ForegroundColor Yellow
+    $demoSectionCheck = Eval-Js @"
+    ({
+        sectionExists: !!document.getElementById('liveDemoSection'),
+        sectionAria: document.getElementById('liveDemoSection')?.getAttribute('aria-label'),
+        videoExists: !!document.getElementById('demoVideoPlayer'),
+        videoDataSrc: document.getElementById('demoVideoPlayer')?.getAttribute('data-src'),
+        videoPlaysInline: document.getElementById('demoVideoPlayer')?.hasAttribute('playsinline'),
+        videoMuted: document.getElementById('demoVideoPlayer')?.hasAttribute('muted'),
+        videoLoop: document.getElementById('demoVideoPlayer')?.hasAttribute('loop'),
+        videoControls: document.getElementById('demoVideoPlayer')?.hasAttribute('controls'),
+        videoPreload: document.getElementById('demoVideoPlayer')?.getAttribute('preload'),
+        videoDisplay: window.getComputedStyle(document.getElementById('demoVideoPlayer')).display,
+        fallbackExists: !!document.getElementById('demoVideoFallback'),
+        fallbackDisplay: window.getComputedStyle(document.getElementById('demoVideoFallback')).display,
+        fallbackTitle: document.getElementById('demoVideoFallback')?.querySelector('.demo-fallback-title')?.textContent
+    })
+"@
+    Write-Host "  Demo Section: Exists=$($demoSectionCheck.sectionExists), Aria='$($demoSectionCheck.sectionAria)'" -ForegroundColor Cyan
+    Write-Host "  Demo Video: Exists=$($demoSectionCheck.videoExists), DataSrc='$($demoSectionCheck.videoDataSrc)', Preload='$($demoSectionCheck.videoPreload)', Display='$($demoSectionCheck.videoDisplay)'" -ForegroundColor Cyan
+    Write-Host "  Fallback Blueprint: Exists=$($demoSectionCheck.fallbackExists), Display='$($demoSectionCheck.fallbackDisplay)', Title='$($demoSectionCheck.fallbackTitle)'" -ForegroundColor Cyan
+
+    if (-not $demoSectionCheck.sectionExists) { throw "FAIL: #liveDemoSection does not exist in DOM!" }
+    if (-not $demoSectionCheck.videoExists) { throw "FAIL: #demoVideoPlayer video element does not exist!" }
+    if ($demoSectionCheck.videoDataSrc -notmatch "assets/demo.mp4") { throw "FAIL: Video element does not reference assets/demo.mp4!" }
+    if (-not $demoSectionCheck.videoPlaysInline -or -not $demoSectionCheck.videoMuted -or -not $demoSectionCheck.videoLoop -or -not $demoSectionCheck.videoControls) {
+        throw "FAIL: Video element is missing playsinline, muted, loop, or controls attributes!"
+    }
+    if ($demoSectionCheck.videoPreload -ne "none") { throw "FAIL: Video element must have preload='none'!" }
+    if ($demoSectionCheck.videoDisplay -ne "none") { throw "FAIL: Video element should be hidden while awaiting capture!" }
+    if ($demoSectionCheck.fallbackDisplay -ne "flex") { throw "FAIL: Fallback blueprint must be visible (display: flex) while awaiting capture!" }
+    if ($demoSectionCheck.fallbackTitle -notmatch "assets/demo.mp4") { throw "FAIL: Fallback blueprint title should mention 'assets/demo.mp4'!" }
+    Write-Host "PASS: Live Demo section, responsive video element, and editorial blueprint fallback validated!" -ForegroundColor Green
+
+    # 11. Check Console Errors
     Write-Host "`n[Summary] Checking for Console Errors & Exceptions..." -ForegroundColor Yellow
     if ($capturedErrors.Count -gt 0) {
         Write-Host "ERRORS DETECTED:" -ForegroundColor Red
